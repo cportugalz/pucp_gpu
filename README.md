@@ -1,2 +1,2 @@
-# module01
+# Module 01
 Initial modules for the project 
