@@ -80,7 +80,7 @@ int main ( )
 	fprintf(temptext, "%g	%.8f	%.8f	%.8f	%.8f	\n", ene, PrSTD[a][b], PrINV[a][b], PrVEP[a][b], PrNSI[a][b]);
    } 
    fclose(temptext);
-   printf("\n ... Finalizó tabla de probabilidad en C/C++ con s = %i . \n", s);
+   printf("\n ... Finalizó tabla de probabilidad en C/C++ con s = %.32f \n", s);
 
  return 0;
 }
