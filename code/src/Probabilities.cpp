@@ -6,23 +6,15 @@ const std::complex<double> ProbConst::I = std::complex<double>(0, 1);
 const double ProbConst::hbar = 6.58211928*1.e-25;
 const double ProbConst::clight = 299792458;
 //double GevkmToevsq = hbar*clight*1.e15;
-const double ProbConst::GevkmToevsq = 0.197327; // Valor aproximado
+const double ProbConst::GevkmToevsq = 0.197327; // Approximated value
 
-Probabilities::Probabilities() {
-
-}
-
-Probabilities::~Probabilities() {
-
-}
-
-void Probabilities::StandardOscilation(
+void StandardOscilation(
 	double Energ, int sigN, double L, double rhomat, double* th, 
     double dCP, double* dm, double* alpha, double** P) {
 	InvisibleDecay(Energ, sigN, L, rhomat, th, dCP, dm, alpha, P);	
 }
 
-void Probabilities::InvisibleDecay(
+void InvisibleDecay(
     double Energ, int sigN, double L, double rhomat, double* th, 
     double dCP, double* dm, double* alpha, double** P) {
 	Eigen::MatrixXcd UPMNS(3, 3);
@@ -109,7 +101,7 @@ void Probabilities::InvisibleDecay(
 	} // Fila j , columna i
 }
 
-void Probabilities::NonStandardInteraction(
+void NonStandardInteraction(
     double Energ, int sigN, double L, double rhomat, double* th, 
     double dCP, double* dm, double* parmNSI, double** P) {
     Eigen::MatrixXcd UPMNS(3, 3);
@@ -214,7 +206,7 @@ void Probabilities::NonStandardInteraction(
 	} // Fila j , columna i
 }
 
-void Probabilities::ViolationPrincipleDecay(
+void ViolationPrincipleDecay(
 	double Energ, int sigN, double L, double rhomat, double* th, 
 	double dCP, double* dm, double* gamma, double** P) {
 	Eigen::MatrixXcd UPMNS(3, 3);
