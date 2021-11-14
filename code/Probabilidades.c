@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <string.h> // Para las funciones de exportacion de datos
-#include <chrono>
 //Librerias de Probabilidad
 #include "Lib_Prob/anth_MyWrapper_INV.h"
 #include "Lib_Prob/anth_MyWrapper_VEP.h"
@@ -70,7 +69,6 @@ int main ( )
    temptext=fopen(nombre,"w");
 
    fprintf(temptext, "Energia	P_OscStd	P_InvDcy	P_VEP	P_NSI	\n");
-  auto start_time = std::chrono::high_resolution_clock::now();
 
    for(ene=0.01 ; ene<=10 ; ene=ene+0.01)
    {
@@ -83,8 +81,6 @@ int main ( )
    } 
    fclose(temptext);
    printf("\n ... Finalizó tabla de probabilidad en C/C++ con s = %d\n", s);
-   auto stop_time = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double, std::milli> duration = stop_time - start_time;
-    std::cout << "Total time: " << duration.count() << " ms\n" ;
+   
  return 0;
 }

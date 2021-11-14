@@ -5,20 +5,20 @@
 
 // Standard Oscilation
 void StandardOscilation(
-	double Energ, int sigN, double L, double rhomat, double* th, 
-	double dCP, double* dm, double* alpha, double** P);
+	std::complex<double>** U, double Energ, int sigN, double L, double rhomat, double* th, 
+	double* dm, double* alpha, double** P);
 // Invisible Decay
 void InvisibleDecay(
-	double Energ, int sigN, double L, double rhomat, double* th, 
-	double dCP, double* dm, double* alpha, double** P);
+	std::complex<double>** U, double Energ, int sigN, double L, double rhomat, double* th, 
+	double* dm, double* alpha, double** P);
 // Violation of Equivalence Principle
 void ViolationPrincipleDecay(
-	double Energ, int sigN, double L, double rhomat, double* th,
-	double dCP, double* dm, double* gamma, double** P );
+	std::complex<double>** U, double Energ, int sigN, double L, double rhomat, double* th,
+	double* dm, double* gamma, double** P );
 // Non Standard Interaction
 void NonStandardInteraction(
-	double Energ, int sigN, double L, double rhomat, double* th, 
-	double dCP, double* dm, double* parmNSI, double** P );
+	std::complex<double>** U, double Energ, int sigN, double L, double rhomat, double* th, 
+	double* dm, double* parmNSI, double** P );
 
 
 class ProbConst {

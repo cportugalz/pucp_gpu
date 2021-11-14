@@ -5,7 +5,7 @@
 #ifndef __INV_H
 #define __INV_H
 
-class INV {
+class MiClaseINV {
 	private:
 		// Constant definition
 		std::complex<double> I = std::complex<double>(0, 1);
@@ -18,7 +18,7 @@ class INV {
 		std::complex<double> DM[3][3];
 
 	public:
-		INV(double Energ, int sigN, double L, double rhomat, double th[3], double dCP, double dm[2], double alpha[3], double P[3][3])
+		MiClaseINV(double Energ, int sigN, double L, double rhomat, double th[3], double dCP, double dm[2], double alpha[3], double P[3][3])
 		{
 			Eigen::MatrixXcd UPMNS(3, 3);
 			Eigen::MatrixXcd Hd(3, 3);
