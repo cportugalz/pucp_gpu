@@ -75,7 +75,7 @@ void perform_simulation(std::string _filename, double _start_sim, double _end_si
         }
     }
     file_results.close();
-    std::cout<< "Thread " << std::this_thread::get_id() << " finished" << std::endl;
+    // std::cout<< "Thread " << std::this_thread::get_id() << " finished" << std::endl;
     delete[] PrNSI;
     delete[] PrSTD;
     delete[] PrVEP;

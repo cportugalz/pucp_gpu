@@ -59,7 +59,7 @@ int main(int argc, char* argv[]){
     }
 
 
-    std::ofstream file_results("output.txt");
+    std::ofstream file_results("output/output.txt");
     auto start_time = std::chrono::high_resolution_clock::now();
     if(file_results.is_open()){
         num_simulations = num_simulations/100.0;
