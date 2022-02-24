@@ -27,8 +27,9 @@ int main(int argc, char* argv[]){
 	double th23 = th[2];
     double dm[] = { 7.4e-5, 2.5e-3 }; 
     double alpSTD[3] = { 0 };
-    double alpINV[3] = { 0, 0, 5.e-5 };
-    double alpVEP[3] = { 0, 0, 2.e-24 };
+    double alpINV[3] = { 0, 0, 5.e-5 }; // (0, alpha2, alpha3))
+    //double alpVEP[3] = { 0, 0, 2.e-24}; //(Gamma1, Gamma2, Gamma2))
+    double alpVEP[3] = { 0, 4.e-24, 0}; //(Gamma1, Gamma2, Gamma2))
     double alpNSI[] = { ee, mm, tt, em, emf, et, etf, mt, mtf };
     double delta = s * d;
     // U matrix for calculations
