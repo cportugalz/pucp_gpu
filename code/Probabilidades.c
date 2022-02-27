@@ -100,7 +100,6 @@ int main ( )
 
 	fprintf(temptext, "%g	%.8g	%.8g	%.8g	%.8g	%.8g	%.8g	\n", ene, PrSTD[a][b], PrINV[a][b], PrVEP[a][b], PrNSI[a][b], PrVis_1[0], PrVis_2[0] );
 	
-	//fprintf(temptext, "%g	%.8g	%.8g	\n", ene, PrVis_1[0], PrVis_2[0] );
    } 
    fclose(temptext);
    printf("\n ... Finalizó tabla de probabilidad en C/C++ con s = %i . \n", s);
