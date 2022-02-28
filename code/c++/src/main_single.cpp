@@ -66,28 +66,28 @@ int main(int argc, char* argv[]){
 
     std::ofstream file_results("output/output.txt");
     auto start_time = std::chrono::high_resolution_clock::now();
-    if(file_results.is_open()){
-        num_simulations = num_simulations/100.0;
-        for(double ene=0.01 ; ene<=num_simulations; ) {
+    if(file_results.is_open()){        
+        for(int iter_energy=1; iter_energy<=num_simulations; ) {
+            double energy = iter_energy/100.0;
             StandardOscilation(
-                U, ene, s, L, rho, th, dm, alpSTD, PrSTD
+                U, energy, s, L, rho, th, dm, alpSTD, PrSTD
             );
             InvisibleDecay(
-                U, ene, s, L, rho, th, dm, alpINV, PrINV 
+                U, energy, s, L, rho, th, dm, alpINV, PrINV 
             );
             ViolationPrincipleDecay(
-                U, ene, s, L, rho, th, dm, alpVEP, PrVEP 
+                U, energy, s, L, rho, th, dm, alpVEP, PrVEP 
             );        
             NonStandardInteraction(
-                U, ene, s, L, rho, th, dm, alpNSI, PrNSI 
+                U, energy, s, L, rho, th, dm, alpNSI, PrNSI 
             );
-            file_results << std::setprecision(2) << ene << ","<< std::scientific
+            file_results << std::setprecision(2) << energy << ","<< std::scientific
                 << std::setprecision(6)
                 << PrSTD[1][0] << "," 
                 << PrINV[1][0] << "," 
                 << PrVEP[1][0] << ","
                 << PrNSI[1][0] << "\n" << std::fixed;
-            ene+=0.01;
+            iter_energy += 1;
         }
     }
     file_results.close();

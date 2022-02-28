@@ -35,3 +35,6 @@
 output.txt
 .DS_STORE
 .vscode/
+output
+main_single
+main_threaded

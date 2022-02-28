@@ -51,10 +51,8 @@ void perform_simulation(std::string _filename, double _start_sim, double _end_si
         PrNSI[i] = new double[3];
     }
     std::ofstream file_results(_filename);
-    if(file_results.is_open()){
-        std::cout << _start_sim << "-" << _end_sim << std::endl << std::flush;
-        for(double ene=_start_sim; int(ene*100)<=int(_end_sim*100); ) {
-            std::cout<< ene << std::endl;
+    if(file_results.is_open()){        
+        for(double ene=_start_sim; int(ene*100)<=int(_end_sim*100); ) {            
             StandardOscilation(
                 U, ene, s, L, rho, th, dm, alpSTD, PrSTD
             );
@@ -106,7 +104,7 @@ int main(int argc, char* argv[]){
     auto start_time = std::chrono::high_resolution_clock::now();
 
     for (int i=0; i<num_threads; i++){
-        std::string filename = "output_" + std::to_string(i)+ ".txt";
+        std::string filename = "output/output_" + std::to_string(i)+ ".txt";
         double start_index = (i*data_slice+1)/100.0;
         double stop_index = ((i+1)*data_slice)/100.0;
         threads[i] = std::thread(perform_simulation, filename, start_index, stop_index);
