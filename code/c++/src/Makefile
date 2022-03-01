@@ -4,8 +4,8 @@
 
 .SILENT:
 all: 
-	g++ -std=c++11 main_single.cpp Probabilities.cpp -o main_single
-	g++ -std=c++11 main_threaded.cpp Probabilities.cpp -o main_threaded
+	g++ -std=c++11 main_single.cpp Probabilities.cpp utils.cpp -o main_single
+	g++ -std=c++11 main_threaded.cpp Probabilities.cpp utils.cpp -o main_threaded
 
 .SILENT:
 single:
@@ -17,4 +17,13 @@ threaded:
 
 .SILENT:
 clean:
-	rm main_single main_threaded *.txt
+	rm main_single main_threaded output/*.txt
+
+help:
+	echo "****** HELP ******"
+	echo "Use:"
+	echo "	make all"
+	echo "to compile all the code then you can run the program with the lines below according to your configuration:"
+	echo "	make single   n = <number of data to simulate>"
+	echo "	make threaded n = <number od data to simulate> t = <number of cores to use>"
+	echo "******************"

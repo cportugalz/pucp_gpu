@@ -1,16 +1,20 @@
 #include <stdio.h>
 #include <string.h> // Para las funciones de exportacion de datos
+
 //Librerias de Probabilidad
 #include "Lib_Prob/anth_MyWrapper_INV.h"
 #include "Lib_Prob/anth_MyWrapper_VEP.h"
 #include "Lib_Prob/anth_MyWrapper_NSI.h"
-#include <cstdio>
-// this is a temporary change to show git branches 
+#include "Lib_Prob/anth_MyWrapper_VIS.h"
+
+
 // Matrices temporales
 double PrSTD[3][3];
 double PrINV[3][3];
+double PrDCH[3][3];
 double PrVEP[3][3];
 double PrNSI[3][3];
+
 
 // Funciones que calculan y escriben las Matrices de Probabilidad
 void MatrizProbSTD (double E, int s, double L, double rho, double th12, double th13, double th23, double delta, double dm21, double dm31, double P[3][3])
@@ -35,6 +39,12 @@ void MatrizProbNSI (double E, int s, double L, double rho, double th12, double t
 { double th[3] = {th12, th13, th23}; double dm[2]= {dm21, dm31}; double nsi[9]= {ee,uu,tt,em,emf,et,etf,mt,mtf};
   struct MiClaseNSI* cnsi = Anth_NSI(E, s, L, rho, th, delta, dm, nsi, P);
   delete_Anth_NSI(cnsi);
+}
+
+void ProbVIS (double E, double L, double rho, double th12, double th13, double th23, double delta, double dm21, double dm31, double mlight, double a2, double a3, int tfi, int tsi, int tff, int tsf, int tpar, int thij, int tqcoup, double P[1])
+{ double th[3] = {th12, th13, th23}; double dm[2]= {dm21, dm31}; double alp[3]= {0,a2,a3};
+  struct MiClaseVIS* cvis = Anth_VIS(E, L, rho, th, delta, dm, mlight, alp, tfi, tsi, tff, tsf, tpar, thij, tqcoup, P);
+  delete_Anth_VIS(cvis);
 }
 
 /***************************************************************/
@@ -62,26 +72,37 @@ int main ( )
  double et = 0 ; double etf = 0;
  double mt = 0 ; double mtf = 0;
  
+  // Parámetros para Vis. Decay
+ int fi_1 = 1, si_1 = 1; int fi_2 = 0, si_2 = 1;
+ int ff_1 = 0, sf_1 = 1; int ff_2 = 1, sf_2 = -1;
+ int par = 2, hij = 0;
+ int qcoup = 1; double mlight = 0.05*0.05; // 1e-20 0.05*0.05
+ double PrVis_1[1], PrVis_2[1];
+ 
+ 
  // Calculamos las tablas de probabilidad
  printf("\n Generando tabla de probabilidad... \n");
    FILE *temptext; double ene;
    char tmpS[5]; sprintf(tmpS, "%i", s);
-   char nombre[200] = "Tablas/Probabilidad_s_"; strcat( nombre, tmpS  ); strcat( nombre, ".dat" );
+//   char nombre[200] = "Tablas/Probabilidad_s_"; strcat( nombre, tmpS  ); strcat( nombre, ".dat" );
+	char nombre[200] = "Tablas/Probabilidad_vis"; strcat( nombre, tmpS  ); strcat( nombre, ".dat" );
    temptext=fopen(nombre,"w");
 
-   fprintf(temptext, "Energia	P_OscStd	P_InvDcy	P_VEP	P_NSI	\n");
-
+   fprintf(temptext, "Energia	P_OscStd	P_InvDcy	P_VEP	P_NSI	P_VIS_1	P_VIS_2	\n");
    for(ene=0.01 ; ene<=10 ; ene=ene+0.01)
    {
  	MatrizProbSTD (ene, s, L, rho, th12, th13, th23, d, dm21, dm31, PrSTD );
  	MatrizProbINV (ene, s, L, rho, th12, th13, th23, d, dm21, dm31, alp2, alp3, PrINV );
  	MatrizProbVEP (ene, s, L, rho, th12, th13, th23, d, dm21, dm31, gam2, gam3, PrVEP );
- 	MatrizProbNSI (ene, s, L, rho, th12, th13, th23, d, dm21, dm31, ee, mm, tt, em, emf, et, etf, mt, mtf, PrNSI );	
+ 	MatrizProbNSI (ene, s, L, rho, th12, th13, th23, d, dm21, dm31, ee, mm, tt, em, emf, et, etf, mt, mtf, PrNSI );
+ 	ProbVIS (ene, L, rho, th12, th13, th23, d, dm21, dm31, mlight, alp2, alp3, fi_1, si_1, ff_1, sf_1, par, hij, qcoup, PrVis_1);
+ 	ProbVIS (ene, L, rho, th12, th13, th23, d, dm21, dm31, mlight, alp2, alp3, fi_2, si_2, ff_2, sf_2, par, hij, qcoup, PrVis_2);
 
-	fprintf(temptext, "%g	%.8f	%.8f	%.8f	%.8f	\n", ene, PrSTD[a][b], PrINV[a][b], PrVEP[a][b], PrNSI[a][b]);
+	fprintf(temptext, "%g	%.8g	%.8g	%.8g	%.8g	%.8g	%.8g	\n", ene, PrSTD[a][b], PrINV[a][b], PrVEP[a][b], PrNSI[a][b], PrVis_1[0], PrVis_2[0] );
+	
    } 
    fclose(temptext);
-   printf("\n ... Finalizó tabla de probabilidad en C/C++ con s = %d\n", s);
-   
+   printf("\n ... Finalizó tabla de probabilidad en C/C++ con s = %i . \n", s);
+
  return 0;
 }

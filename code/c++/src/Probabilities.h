@@ -2,32 +2,29 @@
 #define __PROBABILITIES_H
 #include <complex>
 
-
 // Standard Oscilation
 void StandardOscilation(
-	std::complex<double>** U, double Energ, int sigN, double L, double rhomat, double* th, 
-	double* dm, double* alpha, double** P);
+	std::complex<double>** _U, double _energy, int _sigN, double _L, double _rho, 
+	double* _dm, double* _alpha, double** _P );
+
 // Invisible Decay
 void InvisibleDecay(
-	std::complex<double>** U, double Energ, int sigN, double L, double rhomat, double* th, 
-	double* dm, double* alpha, double** P);
+	std::complex<double>** _U, double _energy, int _sigN, double _L, double _rho, 
+	double* _dm, double* _alpha, double** _P );
+
 // Violation of Equivalence Principle
 void ViolationPrincipleDecay(
-	std::complex<double>** U, double Energ, int sigN, double L, double rhomat, double* th,
-	double* dm, double* gamma, double** P );
+	std::complex<double>** _U, double _energy, int _sigN, double _L, double _rho,
+	double* d_m, double* _gamma, double** _P );
+
 // Non Standard Interaction
 void NonStandardInteraction(
-	std::complex<double>** U, double Energ, int sigN, double L, double rhomat, double* th, 
-	double* dm, double* parmNSI, double** P );
+	std::complex<double>** _U, double _energy, int _sigN, double _L, double _rho, 
+	double* _dm, double* _parmNSI, double** _P );
 
+void Probability_Vis(
+	double _energy, double _L, double _rho, double* th,
+	double* _dm, double d, double* _alpha, double _mlight, int _tfi, int _tsi, int _tff,
+	int _tsf, int _tpar, int _thij, int _tqcoup, double* _P );
 
-class ProbConst {
-	public:
-		ProbConst(){}
-		static const std::complex<double> I;
-		static const double hbar;
-		static const double clight;
-		//double GevkmToevsq = hbar*clight*1.e15;
-		static const double GevkmToevsq;
-};
 #endif

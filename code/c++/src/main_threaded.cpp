@@ -1,4 +1,5 @@
 #include "Probabilities.h"
+#include "utils.h"
 #include <iostream>
 #include <fstream>
 #include <chrono>
@@ -25,20 +26,12 @@ void perform_simulation(std::string _filename, double _start_sim, double _end_si
     double alpVEP[3] = { 0, 0, 2.e-24 };
     double alpNSI[] = { ee, mm, tt, em, emf, et, etf, mt, mtf };
     double delta = s * d;
-    // U matrix for calculations
-    std::complex<double>** U = new std::complex<double>*[3];
-    for (int i=0; i<3; i++){
-        U[i] = new std::complex<double>[3];
-    }
-    U[0][0] = cos(th12) * cos(th13);
-	U[0][1] = sin(th12) * cos(th13);
-	U[0][2] = sin(th13) * exp(-ProbConst::I * delta);
-	U[1][0] = -sin(th12) * cos(th23) - cos(th12) * sin(th23) * sin(th13) * exp(ProbConst::I * delta);
-	U[1][1] = cos(th12) * cos(th23) - sin(th12) * sin(th23) * sin(th13) * exp(ProbConst::I * delta);
-	U[1][2] = sin(th23) * cos(th13);
-	U[2][0] = sin(th12) * sin(th23) - cos(th12) * cos(th23) * sin(th13) * exp(ProbConst::I * delta);
-	U[2][1] = -cos(th12) * sin(th23) - sin(th12) * cos(th23) * sin(th13) * exp(ProbConst::I * delta);
-	U[2][2] = cos(th23) * cos(th13);
+    // Visible decay?
+	int fi_1 = 1, si_1 = 1; int fi_2 = 0, si_2 = 1;
+	int ff_1 = 0, sf_1 = 1; int ff_2 = 1, sf_2 = -1;
+	int par = 2, hij = 0;
+	int qcoup = 1; double mlight = 0.05*0.05; // 1e-20 0.05*0.05
+	double PrVis_1, PrVis_2;
 
     double** PrSTD = new double*[3];
     double** PrINV = new double*[3];
@@ -50,28 +43,40 @@ void perform_simulation(std::string _filename, double _start_sim, double _end_si
         PrVEP[i] = new double[3];
         PrNSI[i] = new double[3];
     }
+    // for standard oscilation, invisible decay, vpd and nsi
+	std::complex<double>** U1 = make_umns(s, th, d);
     std::ofstream file_results(_filename);
     if(file_results.is_open()){        
-        for(double ene=_start_sim; int(ene*100)<=int(_end_sim*100); ) {            
+        for(double energy=_start_sim; int(energy*100)<=int(_end_sim*100); ) {            
             StandardOscilation(
-                U, ene, s, L, rho, th, dm, alpSTD, PrSTD
+                U1, energy, s, L, rho, dm, alpSTD, PrSTD
             );
             InvisibleDecay(
-                U, ene, s, L, rho, th, dm, alpINV, PrINV
+                U1, energy, s, L, rho, dm, alpINV, PrINV
             );
             ViolationPrincipleDecay(
-                U, ene, s, L, rho, th, dm, alpVEP, PrVEP
+                U1, energy, s, L, rho, dm, alpVEP, PrVEP
             );
             NonStandardInteraction(
-                U, ene, s, L, rho, th, dm, alpNSI, PrNSI
+                U1, energy, s, L, rho, dm, alpNSI, PrNSI
             );
-            file_results << std::setprecision(2) << ene << ","<< std::scientific
-                << std::setprecision(6)
-                << PrSTD[1][0] << ","
-                << PrINV[1][0] << ","
-                << PrVEP[1][0] << ","
-                << PrNSI[1][0] << "\n" << std::fixed;
-            ene+=0.01;
+            Probability_Vis(
+				energy, L, rho, th, dm, d, alpINV, mlight, 
+				fi_1, si_1, ff_1, sf_1, par, hij, qcoup, &PrVis_1
+			);
+			Probability_Vis(
+				energy, L, rho, th, dm, d, alpINV, mlight, 
+				fi_2, si_2, ff_2, sf_2, par, hij, qcoup, &PrVis_2
+			);
+            file_results << std::setprecision(2) << energy << ","<< std::fixed
+                << std::setprecision(8)
+                << PrSTD[1][0] << "," 
+				<< PrINV[1][0] << "," 
+				<< PrVEP[1][0] << ","
+				<< PrNSI[1][0] << ","
+				<< PrVis_1 << "," 
+				<< PrVis_2 << "\n" << std::fixed;
+            energy+=0.01;
         }
     }
     file_results.close();

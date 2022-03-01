@@ -1,127 +1,87 @@
 #include "Probabilities.h"
+#include "utils.h"
 #include <eigen3/Eigen/Eigenvalues>
+#include "integrate/_1D/GaussianQuadratures/GaussLegendre.hpp"
 #include <complex>
 
-const std::complex<double> ProbConst::I = std::complex<double>(0, 1);
-const double ProbConst::hbar = 6.58211928*1.e-25;
-const double ProbConst::clight = 299792458;
-//double GevkmToevsq = hbar*clight*1.e15;
-const double ProbConst::GevkmToevsq = 0.197327; // Approximated value
 
 void StandardOscilation(
-	std::complex<double>** U, double Energ, int sigN, double L, double rhomat, double* th, double* dm, 
-	double* alpha, double** P) {
-	InvisibleDecay(U, Energ, sigN, L, rhomat, th, dm, alpha, P);
+	std::complex<double>** _U, double _energy, int _sigN, double _L, double _rho, 
+	double* _dm, double* _alpha, double** _P) {
+	InvisibleDecay(_U, _energy, _sigN, _L, _rho, _dm, _alpha, _P);
 }
 
 void InvisibleDecay(
-    std::complex<double>** U, double Energ, int sigN, double L, double rhomat, double* th, double* dm, 
-	double* alpha, double** P) {
-	Eigen::MatrixXcd UPMNS(3, 3);
-	Eigen::MatrixXcd Hd(3, 3);
+    std::complex<double>** _U, double _energy, int _sigN, double _L, double _rho, 
+	double* _dm, double* _alpha, double** _P) {
 	Eigen::MatrixXcd Pot(3, 3);
 	Eigen::MatrixXcd Hff(3, 3);
 	Eigen::MatrixXcd S(3, 3);
 	Eigen::MatrixXcd V(3, 3);
-
-	double En = Energ * 1e9;
-	double dm21 = dm[0];
-	double dm31 = dm[1];
-	double alpha1 = alpha[0];
-	double alpha2 = alpha[1];
-	double alpha3 = alpha[2];
-	double rho = sigN * rhomat;
-	
+	double energy = _energy * 1e9;
+	double rho = _sigN * _rho;
     std::complex<double> DM[3][3] = { std::complex<double>(0, 0) };
 	/* Matriz de masas y Decay */
-	DM[0][0] = std::complex<double>(0, -0.5 * alpha1 / En);
-	DM[1][1] = std::complex<double>(0.5 * dm21 / En, -0.5 * alpha2 / En);
-	DM[2][2] = std::complex<double>(0.5 * dm31 / En, -0.5 * alpha3 / En);
-
-	/* Inicializando las matrices para Eigen */
-	UPMNS << U[0][0], U[0][1], U[0][2],
-		U[1][0], U[1][1], U[1][2],
-		U[2][0], U[2][1], U[2][2];
-	Hd << DM[0][0], DM[0][1], DM[0][2],
-		DM[1][0], DM[1][1], DM[1][2],
-		DM[2][0], DM[2][1], DM[2][2];
+	DM[0][0] = std::complex<double>(0, -0.5 * _alpha[0] / energy);
+	DM[1][1] = std::complex<double>(0.5 * _dm[0] / energy, -0.5 * _alpha[1] / energy);
+	DM[2][2] = std::complex<double>(0.5 * _dm[1] / energy, -0.5 * _alpha[2] / energy);
 	Pot << std::complex<double>(rho * 7.63247 * 0.5 * 1.e-14, 0), DM[0][1], DM[0][2],
 		DM[1][0], DM[0][0], DM[1][2],
 		DM[2][0], DM[2][1], DM[0][0];
-
+	/* Inicializando las matrices para Eigen */
+	Eigen::MatrixXcd UPMNS(3, 3);
+	UPMNS << _U[0][0], _U[0][1], _U[0][2],
+		_U[1][0], _U[1][1], _U[1][2],
+		_U[2][0], _U[2][1], _U[2][2];
+	Eigen::MatrixXcd Hd(3, 3);
+	Hd << DM[0][0], DM[0][1], DM[0][2],
+		DM[1][0], DM[1][1], DM[1][2],
+		DM[2][0], DM[2][1], DM[2][2];
 	/* Hamiltoniano final efectivo */
 	Hff = UPMNS * Hd * UPMNS.adjoint() + Pot;
-
 	/* Calculando los autovalores y autovectores */
 	Eigen::ComplexEigenSolver<Eigen::MatrixXcd> tmp;
 	tmp.compute(Hff);
-
 	/* Calculamos la matriz S y ordenamos los autovalores */
 	V = tmp.eigenvectors();
-	S << exp(-ProbConst::I * tmp.eigenvalues()[0] * L * 1.e9 / ProbConst::GevkmToevsq), DM[0][0], DM[0][0],
-		DM[0][0], exp(-ProbConst::I * tmp.eigenvalues()[1] * L * 1.e9 / ProbConst::GevkmToevsq), DM[0][0],
-		DM[0][0], DM[0][0], exp(-ProbConst::I * tmp.eigenvalues()[2] * L * 1.e9 / ProbConst::GevkmToevsq);
-
+	S << exp(-ProbConst::I * tmp.eigenvalues()[0] * _L * 1.e9 / ProbConst::GevkmToevsq), DM[0][0], DM[0][0],
+		DM[0][0], exp(-ProbConst::I * tmp.eigenvalues()[1] * _L * 1.e9 / ProbConst::GevkmToevsq), DM[0][0],
+		DM[0][0], DM[0][0], exp(-ProbConst::I * tmp.eigenvalues()[2] * _L * 1.e9 / ProbConst::GevkmToevsq);
 	S = (V)*S * (V.inverse());
-
 	// Calculando la matriz de probabilidad
 	for (int i = 0; i < 3; i++)
 	{
 		for (int j = 0; j < 3; j++)
 		{
-			P[i][j] = abs(S.col(i)[j] * S.col(i)[j]);
+			_P[i][j] = abs(S.col(i)[j] * S.col(i)[j]);
 		}
 	} // Fila j , columna i
 }
 
 void NonStandardInteraction(
-    std::complex<double>** U, double Energ, int sigN, double L, double rhomat, double* th,
-    double* dm, double* parmNSI, double** P) {
-    Eigen::MatrixXcd UPMNS(3, 3);
-    Eigen::MatrixXcd Hd(3, 3);
+    std::complex<double>** _U, double _energy, int _sigN, double _L, double _rho, 
+	double* _dm, double* _parmNSI, double** _P) {
     Eigen::MatrixXcd Pot(3, 3);
     Eigen::MatrixXcd MNSI(3, 3);
     Eigen::MatrixXcd Hff(3, 3);
     Eigen::MatrixXcd S(3, 3);
     Eigen::MatrixXcd V(3, 3);
-
-	double En = Energ*1e9;
-	double th12 = th[0];
-	double th13 = th[1];
-	double th23 = th[2];
-	// double delta = sigN*dCP;
-	double dm21 = dm[0];
-	double dm31 = dm[1];
-	double rho = sigN*rhomat;
-  
+	double energy = _energy*1e9;	
+	double rho = _sigN*_rho;
     std::complex<double> DM[3][3] = { std::complex<double>(0, 0) };
     std::complex<double> NSI[3][3];
-
-    DM[1][1] = std::complex<double>(0.5*dm21/En, 0);
-    DM[2][2] = std::complex<double>(0.5*dm31/En, 0);
-
+    DM[1][1] = std::complex<double>(0.5 * _dm[0]/energy, 0);
+    DM[2][2] = std::complex<double>(0.5 * _dm[1]/energy, 0);
     /* Matriz de parámetros NSI */
-    NSI[0][0] = parmNSI[0];
-    NSI[0][1] = parmNSI[3] * exp(ProbConst::I*parmNSI[4]);
-    NSI[0][2] = parmNSI[5] * exp(ProbConst::I*parmNSI[6]);
-
-    NSI[1][0] = parmNSI[3] * exp(-ProbConst::I*parmNSI[4]);
-    NSI[1][1] = parmNSI[1];
-    NSI[1][2] = parmNSI[7] * exp(ProbConst::I*parmNSI[8]);
-
-    NSI[2][0] = parmNSI[5] * exp(-ProbConst::I*parmNSI[6]);
-    NSI[2][1] = parmNSI[7] * exp(-ProbConst::I*parmNSI[8]);
-    NSI[2][2] = parmNSI[2];
-
-	/* Inicializando las matrices para Eigen */
-	UPMNS <<
-		U[0][0], U[0][1], U[0][2],
-		U[1][0], U[1][1], U[1][2],
-		U[2][0], U[2][1], U[2][2];
-	Hd <<
-		DM[0][0], DM[0][1], DM[0][2],
-		DM[1][0], DM[1][1], DM[1][2],
-		DM[2][0], DM[2][1], DM[2][2];
+    NSI[0][0] = _parmNSI[0];
+    NSI[0][1] = _parmNSI[3] * exp(ProbConst::I*_parmNSI[4]);
+    NSI[0][2] = _parmNSI[5] * exp(ProbConst::I*_parmNSI[6]);
+    NSI[1][0] = _parmNSI[3] * exp(-ProbConst::I*_parmNSI[4]);
+    NSI[1][1] = _parmNSI[1];
+    NSI[1][2] = _parmNSI[7] * exp(ProbConst::I*_parmNSI[8]);
+    NSI[2][0] = _parmNSI[5] * exp(-ProbConst::I*_parmNSI[6]);
+    NSI[2][1] = _parmNSI[7] * exp(-ProbConst::I*_parmNSI[8]);
+    NSI[2][2] = _parmNSI[2];
 	Pot <<
 		std::complex<double>(rho*7.63247*0.5*1.e-14, 0), DM[0][1], DM[0][2],
 		DM[1][0], DM[0][0], DM[1][2],
@@ -130,93 +90,109 @@ void NonStandardInteraction(
 		NSI[0][0], NSI[0][1], NSI[0][2],
 		NSI[1][0], NSI[1][1], NSI[1][2],
 		NSI[2][0], NSI[2][1], NSI[2][2];
-
+	/* Inicializando las matrices para Eigen */
+	Eigen::MatrixXcd UPMNS(3, 3);
+	UPMNS << _U[0][0], _U[0][1], _U[0][2],
+		_U[1][0], _U[1][1], _U[1][2],
+		_U[2][0], _U[2][1], _U[2][2];
+	Eigen::MatrixXcd Hd(3, 3);
+	Hd << DM[0][0], DM[0][1], DM[0][2],
+		DM[1][0], DM[1][1], DM[1][2],
+		DM[2][0], DM[2][1], DM[2][2];
 	/* Hamiltoniano final efectivo */
 	Hff = UPMNS * Hd * UPMNS.adjoint() + rho*7.63247*0.5*1.e-14*MNSI + Pot ;
-
 	/* Calculando los autovalores y autovectores */
 	Eigen::ComplexEigenSolver<Eigen::MatrixXcd> tmp;
 	tmp.compute(Hff);
-
 	/* Calculamos la matriz S y ordenamos los autovalores */
 	V = tmp.eigenvectors() ;
 	S <<
-		exp(-ProbConst::I*tmp.eigenvalues()[0]*L*1.e9/ProbConst::GevkmToevsq), DM[0][0], DM[0][0],
-		DM[0][0], exp(-ProbConst::I*tmp.eigenvalues()[1]*L*1.e9/ProbConst::GevkmToevsq), DM[0][0],
-		DM[0][0], DM[0][0], exp(-ProbConst::I*tmp.eigenvalues()[2]*L*1.e9/ProbConst::GevkmToevsq);
-
+		exp(-ProbConst::I*tmp.eigenvalues()[0] * _L * 1.e9/ProbConst::GevkmToevsq), DM[0][0], DM[0][0],
+		DM[0][0], exp(-ProbConst::I*tmp.eigenvalues()[1] * _L * 1.e9/ProbConst::GevkmToevsq), DM[0][0],
+		DM[0][0], DM[0][0], exp(-ProbConst::I*tmp.eigenvalues()[2] * _L * 1.e9/ProbConst::GevkmToevsq);
 	S = ( V ) * S * ( V.inverse() );
-
 	// Calculando la matriz de probabilidad
 	for(int i=0; i<3; i++){
 		for(int j=0; j<3; j++) {
-			P[i][j] = abs(S.col(i)[j]*S.col(i)[j]);
+			_P[i][j] = abs(S.col(i)[j]*S.col(i)[j]);
 		}
 	} // Fila j , columna i
 }
 
 void ViolationPrincipleDecay(
-	std::complex<double>** U, double Energ, int sigN, double L, double rhomat, double* th, 
-	double* dm, double* gamma, double** P) {
-	Eigen::MatrixXcd UPMNS(3, 3);
-	Eigen::MatrixXcd Hd(3, 3);
+	std::complex<double>** _U, double _energy, int _sigN, double _L, double _rho, 
+	double* _dm, double* _gamma, double** _P) {
 	Eigen::MatrixXcd Pot(3, 3);
 	Eigen::MatrixXcd Hff(3, 3);
 	Eigen::MatrixXcd S(3, 3);
 	Eigen::MatrixXcd V(3, 3);
-
-	double En = Energ*1e9;
-	double th12 = th[0];
-	double th13 = th[1];
-	double th23 = th[2];
-	// double delta = sigN*dCP;
-	double dm21 = dm[0];
-	double dm31 = dm[1];
-	double gamma1 = gamma[0];
-	double gamma2 = gamma[1];
-	double gamma3 = gamma[2];
-	double rho = sigN*rhomat;
+	double energy = _energy*1e9;
+	double rho = _sigN*_rho;
     std::complex<double> DM[3][3] = { std::complex<double>(0, 0) };
 	/* Matriz de masas y VEP con U_g = U */
-	DM[0][0] = std::complex<double>(0+2*En*gamma1, 0);
-	DM[1][1] = std::complex<double>(0.5*dm21/En + 2*En*gamma2, 0);
-	DM[2][2] = std::complex<double>(0.5*dm31/En + 2*En*gamma3, 0);
-
-	/* Inicializando las matrices para Eigen */
-	UPMNS <<
-		U[0][0], U[0][1], U[0][2],
-		U[1][0], U[1][1], U[1][2],
-		U[2][0], U[2][1], U[2][2];
-	Hd <<
-		DM[0][0], DM[0][1], DM[0][2],
-		DM[1][0], DM[1][1], DM[1][2],
-		DM[2][0], DM[2][1], DM[2][2];
+	DM[0][0] = std::complex<double>(0 + 2*energy*_gamma[0], 0);
+	DM[1][1] = std::complex<double>(0.5*_dm[0]/energy + 2*energy*_gamma[1], 0);
+	DM[2][2] = std::complex<double>(0.5*_dm[1]/energy + 2*energy*_gamma[2], 0);
 	Pot <<
 		std::complex<double>(rho*7.63247*0.5*1.e-14, 0), DM[0][1], DM[0][2],
 		DM[1][0], DM[0][0], DM[1][2],
 		DM[2][0], DM[2][1], DM[0][0];
-
+	/* Inicializando las matrices para Eigen */
+	Eigen::MatrixXcd UPMNS(3, 3);
+	UPMNS << _U[0][0], _U[0][1], _U[0][2],
+		_U[1][0], _U[1][1], _U[1][2],
+		_U[2][0], _U[2][1], _U[2][2];
+	Eigen::MatrixXcd Hd(3, 3);
+	Hd << DM[0][0], DM[0][1], DM[0][2],
+		DM[1][0], DM[1][1], DM[1][2],
+		DM[2][0], DM[2][1], DM[2][2];
 	/* Hamiltoniano final efectivo */
 	Hff = UPMNS * Hd * UPMNS.adjoint() + Pot ;
-
 	/* Calculando los autovalores y autovectores */
 	Eigen::ComplexEigenSolver<Eigen::MatrixXcd> tmp;
 	tmp.compute(Hff);
-
 	/* Calculamos la matriz S y ordenamos los autovalores */
 	V = tmp.eigenvectors() ;
 	S <<
-		exp(-ProbConst::I*tmp.eigenvalues()[0]*L*1.e9/ProbConst::GevkmToevsq), DM[0][0], DM[0][0],
-		DM[0][0], exp(-ProbConst::I*tmp.eigenvalues()[1]*L*1.e9/ProbConst::GevkmToevsq), DM[0][0],
-		DM[0][0], DM[0][0], exp(-ProbConst::I*tmp.eigenvalues()[2]*L*1.e9/ProbConst::GevkmToevsq);
-
+		exp(-ProbConst::I*tmp.eigenvalues()[0]*_L*1.e9/ProbConst::GevkmToevsq), DM[0][0], DM[0][0],
+		DM[0][0], exp(-ProbConst::I*tmp.eigenvalues()[1]*_L*1.e9/ProbConst::GevkmToevsq), DM[0][0],
+		DM[0][0], DM[0][0], exp(-ProbConst::I*tmp.eigenvalues()[2]*_L*1.e9/ProbConst::GevkmToevsq);
 	S = ( V ) * S * ( V.inverse() );
-
 	// Calculando la matriz de probabilidad
 	for(int i=0; i<3; i++) {
 		for(int j=0; j<3; j++) {
-			P[i][j] = abs(S.col(i)[j]*S.col(i)[j]);
+			_P[i][j] = abs(S.col(i)[j]*S.col(i)[j]);
 		}
 	}
 }
 
+void Probability_Vis(double _energy, double _L, double _rho, double* _th,
+	double* _dm, double d,  double* _alpha, double _mlight, int _tfi, int _tsi, int _tff, 
+	int _tsf, int _tpar, int _thij, int _tqcoup, double* _P) {
+	// Matriz Potencial
+	Eigen::Matrix3cd Pot; //(3, 3)
+	/* Algoritmo para Integral */
+	_1D::GQ::GaussLegendreQuadrature<double, 64> NintegrGLQ; // 64
+	double Enf = _energy * 1.e9;
+	double* mss = new double[3];
+	double mm;	/* variable temporal */
+	/* definimos vector mss */
+	if (_dm[1] > 0) {
+		mss[0] = _mlight;
+		mss[1] = _dm[0] + _mlight;
+		mss[2] = _dm[1] + _mlight;
+	} else {
+		mss[0] = _mlight;
+		mss[1] = -_dm[1] + _mlight;
+		mss[2] = _dm[0] - _dm[1] + _mlight;
+	}
+	mm = min(20, (mss[_tpar] / mss[_thij]) * _energy); // Límite superior de integración
+	// Inicializamos el potencial
+	Pot << std::complex<double>(_rho * 7.63247 * 0.5 * 1.e-14, 0), ProbConst::Z0, ProbConst::Z0,
+		ProbConst::Z0, ProbConst::Z0, ProbConst::Z0, 
+		ProbConst::Z0, ProbConst::Z0, ProbConst::Z0;
+	using std::placeholders::_1;
+	*_P = 1.e9 * NintegrGLQ(std::bind(
+		IntegrandoPhi, _1, mss, Pot, Enf, _L, _th, d, _alpha, _tfi, _tsi, _tff, 
+		_tsf, _tpar, _thij, _tqcoup), (1.00001) * _energy, mm);
+}

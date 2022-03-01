@@ -1,12 +1,29 @@
 # Carpeta con funciones de probabilidad
 LIB := Lib_Prob
 
+########## Compilador SQuiDS en C++
+LIBDIR:=lib
+INCDIR:=include
+
+GSL_CFLAGS=-I/usr/local/include
+GSL_LDFLAGS=-L/usr/local/lib -lgsl -lgslcblas -lm
+
+CFLAGS:= -Wno-abi -O3 -fPIC -I$(INCDIR) $(GSL_CFLAGS)
+CXXFLAGS:= -std=c++11
+LDFLAGS:= -Wl,-rpath -Wl,$(LIBDIR) -L$(LIBDIR) $(GSL_LDFLAGS)
+
+#PATH_SQUIDS=../..
+CXXFLAGS+=-I$(PATH_SQUIDS)/$(INCDIR)
+LDFLAGS+= -Wl,-rpath -Wl,$(PATH_SQUIDS)/$(LIBDIR) -L$(PATH_SQUIDS)/$(LIBDIR) -lSQuIDS $(GSL_LDFLAGS)
+
+######################
+
 # Primero calculamos las Probabilidades, limpiamos los .o y ejecutamos
-all:	Probabilidades	clean
+all:	Probabilidades	clean	
 
 # Ejecución del programa principal y librerias. Sólo escribir 'make'+ Enter en la lína de comandos, luego ./Prob
-Probabilidades :	Probabilidades.o	MyWrapperINV.o	MyWrapperVEP.o	MyWrapperNSI.o
-	g++	Probabilidades.o	$(LIB)/MyWrapperINV.o	$(LIB)/MyWrapperVEP.o	$(LIB)/MyWrapperNSI.o	-o	Prob
+Probabilidades :	Probabilidades.o	MyWrapperINV.o	MyWrapperVEP.o	MyWrapperNSI.o	MyWrapperVIS.o
+	g++	Probabilidades.o	$(LIB)/MyWrapperINV.o	$(LIB)/MyWrapperVEP.o	$(LIB)/MyWrapperNSI.o	$(LIB)/MyWrapperVIS.o	$(LDFLAGS)	-o	Prob
 	
 Probabilidades.o :	Probabilidades.c
 	gcc	-c	Probabilidades.c	-o	Probabilidades.o	
@@ -19,8 +36,11 @@ MyWrapperVEP.o :	$(LIB)/anth_MyWrapper_VEP.cc
 
 MyWrapperNSI.o :	$(LIB)/anth_MyWrapper_NSI.cc
 	g++	-c	$(LIB)/anth_MyWrapper_NSI.cc	-o	$(LIB)/MyWrapperNSI.o
+	
+MyWrapperVIS.o :	$(LIB)/anth_MyWrapper_VIS.cc
+	g++	-c	$(LIB)/anth_MyWrapper_VIS.cc	-o	$(LIB)/MyWrapperVIS.o
 
 clean: 
-	rm	-f	Probabilidades.o	$(LIB)/MyWrapperINV.o	$(LIB)/MyWrapperVEP.o	$(LIB)/MyWrapperNSI.o
+	rm	-f	Probabilidades.o	$(LIB)/MyWrapperINV.o	$(LIB)/MyWrapperVEP.o	$(LIB)/MyWrapperNSI.o	$(LIB)/MyWrapperVIS.o
 run:
 	./Prob
