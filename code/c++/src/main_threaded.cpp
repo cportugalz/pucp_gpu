@@ -54,17 +54,17 @@ void perform_simulation(std::string _filename, double _start_sim, double _end_si
             InvisibleDecay(
                 U1, energy, s, L, rho, dm, alpINV, PrINV
             );
-            ViolationPrincipleDecay(
+            ViolationEquivalencePrinciple(
                 U1, energy, s, L, rho, dm, alpVEP, PrVEP
             );
             NonStandardInteraction(
                 U1, energy, s, L, rho, dm, alpNSI, PrNSI
             );
-            Probability_Vis(
+            VisibleDecay(
 				energy, L, rho, th, dm, d, alpINV, mlight, 
 				fi_1, si_1, ff_1, sf_1, par, hij, qcoup, &PrVis_1
 			);
-			Probability_Vis(
+			VisibleDecay(
 				energy, L, rho, th, dm, d, alpINV, mlight, 
 				fi_2, si_2, ff_2, sf_2, par, hij, qcoup, &PrVis_2
 			);
