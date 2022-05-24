@@ -38,3 +38,5 @@ output.txt
 output
 main_single
 main_threaded
+__pycache__/
+seetings.json

@@ -17,7 +17,7 @@ def make_umns(_sg, _th, _dcp):
     th23 = _th[2]
     delta = _sg * _dcp
 
-    U = np.array((3,3),dtype=np.complex)
+    U = np.ndarray((3,3),dtype=np.complex)
     
     U[0,0] = np.cos(th12) * np.cos(th13)
     U[0,1] = np.sin(th12) * np.cos(th13)
@@ -69,13 +69,30 @@ def PhiIntegration(_ei, _mss, _Pot, _enf, _l, _th, _d, _alpha, _tfi, _tsi, _tff,
     ef = _enf * 1.e-9
     dist = _l * 1.e-9 / ProbConst.GevkmToevsq
 
-    Utemp = np.array((3,3))
-    Htemp = np.array((3,3))
+    Utemp = np.ndarray((3,3))
+    Htemp = np.ndarray((3,3))
 
     _U = make_umns(_tsi, _th, _d)
     
-    Utemp << _U[0,0], _U[0,1], _U[0,2], _U[1,0], _U[1,1], _U[1,2], _U[2,0], _U[2,1], _U[2,2]
-    Htemp << np.complex(0.5 * _mss[0] / Eni, -0.5 * _alpha[0] / Eni), ProbConst.Z0, ProbConst.Z0, ProbConst.Z0, np.complex(0.5 * _mss[1] / Eni, -0.5 * _alpha[1] / Eni), ProbConst.Z0, ProbConst.Z0, ProbConst.Z0, np.complex(0.5 * _mss[2] / Eni, -0.5 * _alpha[2] / Eni)
+    Utemp[0,0] = _U[0,0]
+    Utemp[0,1] = _U[0,1]
+    Utemp[0,2] = _U[0,2]
+    Utemp[1,0] = _U[1,0]
+    Utemp[1,1] = _U[1,1]
+    Utemp[1,2] = _U[1,2]
+    Utemp[2,0] = _U[2,0]
+    Utemp[2,1] = _U[2,1]
+    Utemp[2,2] = _U[2,2]
+    
+    Htemp[0,0] = np.complex(0.5 * _mss[0] / Eni, -0.5 * _alpha[0] / Eni)
+    Htemp[0,1] = ProbConst.Z0
+    Htemp[0,2] = ProbConst.Z0
+    Htemp[1,0] = ProbConst.Z0
+    Htemp[1,1] = np.complex(0.5 * _mss[1] / Eni, -0.5 * _alpha[1] / Eni)
+    Htemp[1,2] = ProbConst.Z0
+    Htemp[2,0] = ProbConst.Z0
+    Htemp[2,1] = ProbConst.Z0
+    Htemp[2,2] = np.complex(0.5 * _mss[2] / Eni, -0.5 * _alpha[2] / Eni)
 
     Htemp = Utemp * Htemp * Utemp.conj().T + _tsi + _Pot
     tmpVD = sp.linalg.eig(Htemp)
@@ -89,8 +106,25 @@ def PhiIntegration(_ei, _mss, _Pot, _enf, _l, _th, _d, _alpha, _tfi, _tsi, _tff,
     Cmati = Umati.transpose * Utemp.conj()
 
     _U = make_umns(_tsf, _th, _d)
-    Utemp << _U[0,0], _U[0,1], _U[0,2], _U[1,0], _U[1,1], _U[1,2], _U[2,0], _U[2,1], _U[2,2]
-    Htemp << np.complex(0.5 * _mss[0] / _enf, -0.5 * _alpha[0] / _enf), ProbConst.Z0, ProbConst.Z0, ProbConst.Z0, np.complex(0.5 * _mss[1] / _enf, -0.5 * _alpha[1] / _enf), ProbConst.Z0, ProbConst.Z0, ProbConst.Z0, np.complex(0.5 * _mss[2] / _enf, -0.5 * _alpha[2] / _enf)
+    Utemp[0,0] = _U[0,0]
+    Utemp[0,1] = _U[0,1]
+    Utemp[0,2] = _U[0,2]
+    Utemp[1,0] = _U[1,0]
+    Utemp[1,1] = _U[1,1]
+    Utemp[1,2] = _U[1,2]
+    Utemp[2,0] = _U[2,0]
+    Utemp[2,1] = _U[2,1]
+    Utemp[2,2] = _U[2,2]
+    
+    Htemp[0,0] = np.complex(0.5 * _mss[0] / _enf, -0.5 * _alpha[0] / _enf)
+    Htemp[0,1] = ProbConst.Z0
+    Htemp[0,2] = ProbConst.Z0
+    Htemp[1,0] = ProbConst.Z0
+    Htemp[1,1] = np.complex(0.5 * _mss[1] / _enf, -0.5 * _alpha[1] / _enf)
+    Htemp[1,2] = ProbConst.Z0
+    Htemp[2,0] = ProbConst.Z0
+    Htemp[2,1] = ProbConst.Z0
+    Htemp[2,2] = np.complex(0.5 * _mss[2] / _enf, -0.5 * _alpha[2] / _enf)
 
     Htemp = Utemp * Htemp * Utemp.conj().T + _tsf + _Pot
 
@@ -121,3 +155,9 @@ def PhiIntegration(_ei, _mss, _Pot, _enf, _l, _th, _d, _alpha, _tfi, _tsi, _tff,
     tmp = 2 * sum * (((ef / _ei) * _alpha[_tpar]) / Eni) * theta
     return tmp
 
+def dotComplexMatrix(A, B):
+    R = np.ndarray((3,3), dtype=np.complex)
+    for i in range(3):
+        for j in range(3):
+            R[i,j] = np.vdot(A[i], B[:,j])
+    return np.copy(R)
