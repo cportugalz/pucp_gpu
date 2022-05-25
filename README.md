@@ -2,7 +2,6 @@
 Revisar la carpeta docs para mayor información de la teoría implementada aqui. Para esta revisión se ha agregado una función de integración con su respectiva biblioteca de código.
 
 ## Requerimientos  
-
 1. Compilador de C++ 11.
 2. Librería [eigen3](https://eigen.tuxfamily.org/index.php?title=Main_Page) de C++. Para instalar esta librería en Ubuntu 18.04, 20.X usar la siguiente linea de comando:
     ```bash

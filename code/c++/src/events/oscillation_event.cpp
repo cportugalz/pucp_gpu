@@ -4,10 +4,10 @@
 
 
 void event_total(double** _plusPrSTD, double** _minusPrSTD) {
-    double signal1 = 1002.7*_plusPrSTD[2][1] + 25.1;
-    double signal2 = 418.4*_minusPrSTD[2][1] + 14.6;
-    double background1 = 24.6*_plusPrSTD[2][2] + 6;
-    double background2 = 15*_minusPrSTD[2][2] + 4;
+    double signal1 = 1002.7*_plusPrSTD[1][0] + 25.1;
+    double signal2 = 418.4*_minusPrSTD[1][0] + 14.6;
+    double background1 = 24.6*_plusPrSTD[1][1] + 6;
+    double background2 = 15*_minusPrSTD[1][1] + 4;
     double ntotal = signal1 + signal2 + background1 + background2;
     std::cout<<ntotal<<std::endl;
 }
@@ -18,6 +18,7 @@ int main() {
     two signals and two backgrounds
     **/
     double L = 1300;
+    // 
     double GevkmToevsq = 0.197327;
     double th[] = { 0.163179, 0.216797, 0.841411 };
     double delta = 2.10451;
@@ -29,7 +30,7 @@ int main() {
     double rho = 2.956740;
     // for standard oscilation, invisible decay, vpd and nsi
 	std::complex<double>** U1_plusone = make_umns(1, th, delta);
-    std::complex<double>** U1_minusone = make_umns(1, th, delta);
+    std::complex<double>** U1_minusone = make_umns(-1, th, delta);
     
     double** plusPrSTD = new double*[3];
     double** minusPrSTD = new double*[3];
