@@ -1,5 +1,5 @@
 import numpy as np
-import scipy as sp
+import scipy.optimize
 import math
 from utils import ProbConst, PhiIntegration, dotComplexMatrix
 
@@ -187,8 +187,8 @@ def ViolationPrincipleDecay(_U, _energy, _sigN, _L, _rho, _dm, _gamma, _P):
     DM = np.zeros((3,3), dtype=np.complex)
 
     DM[0,0] = np.complex(2 * energy * _gamma[0], 0)
-    DM[1,1] = np.complex(0,5 * _dm[0] / energy + 2 * energy * _gamma[1], 0)
-    DM[2,2] = np.complex(0,5 * _dm[1] / energy + 2 * energy * _gamma[2], 0)
+    DM[1,1] = np.complex(0.5 * _dm[0] / energy + 2 * energy * _gamma[1], 0)
+    DM[2,2] = np.complex(0.5 * _dm[1] / energy + 2 * energy * _gamma[2], 0)
 
     Pot[0,0] = np.complex(rho * 7.63247 * 0.5 * 1e-14, 0)
     Pot[0,1] = DM[0][1]
@@ -228,7 +228,7 @@ def ViolationPrincipleDecay(_U, _energy, _sigN, _L, _rho, _dm, _gamma, _P):
 
     Hff = A + Pot
 
-    tmp = sp.linalg.eigh(Hff)
+    tmp = scipy.linalg.eigh(Hff)
 
     V = tmp[1]
 
