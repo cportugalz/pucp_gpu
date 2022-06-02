@@ -1,4 +1,4 @@
-#include "Probabilities.h"
+#include "probabilities.h"
 #include "utils.h"
 #include <eigen3/Eigen/Eigenvalues>
 #include "integrate/_1D/GaussianQuadratures/GaussLegendre.hpp"

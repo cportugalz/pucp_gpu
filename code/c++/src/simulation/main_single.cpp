@@ -1,4 +1,4 @@
-#include "Probabilities.h"
+#include "probabilities.h"
 #include "utils.h"
 #include <iostream>
 #include <fstream>
