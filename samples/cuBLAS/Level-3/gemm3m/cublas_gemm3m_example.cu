@@ -59,90 +59,90 @@
 using data_type = cuComplex;
 
 int main(int argc, char *argv[]) {
-    cublasHandle_t cublasH = NULL;
-    cudaStream_t stream = NULL;
+	cublasHandle_t cublasH = NULL;
+	cudaStream_t stream = NULL;
 
-    const int m = 2;
-    const int n = 2;
-    const int k = 2;
-    const int lda = 2;
-    const int ldb = 2;
-    const int ldc = 2;
+	const int m = 2;
+	const int n = 2;
+	const int k = 2;
+	const int lda = 2;
+	const int ldb = 2;
+	const int ldc = 2;
 
-    /*
-     *   A = | 1.1 + 1.2j | 2.3 + 2.4j |
-     *       | 3.5 + 3.6j | 4.7 + 4.8j |
-     *
-     *   B = | 1.1 + 1.2j | 2.3 + 2.4j |
-     *       | 3.5 + 3.6j | 4.7 + 4.8j |
-     */
+	/*
+	 *   A = | 1.1 + 1.2j | 2.3 + 2.4j |
+	 *       | 3.5 + 3.6j | 4.7 + 4.8j |
+	 *
+	 *   B = | 1.1 + 1.2j | 2.3 + 2.4j |
+	 *       | 3.5 + 3.6j | 4.7 + 4.8j |
+	 */
 
-    const std::vector<data_type> A = {{1.1, 1.2}, {3.5, 3.6}, {2.3, 2.4}, {4.7, 4.8}};
-    const std::vector<data_type> B = {{1.1, 1.2}, {3.5, 3.6}, {2.3, 2.4}, {4.7, 4.8}};
-    std::vector<data_type> C(m * n);
-    const data_type alpha = {1.0, 1.0};
-    const data_type beta = {0.0, 0.0};
+	const std::vector<data_type> A = {{1.1, 1.2}, {3.5, 3.6}, {2.3, 2.4}, {4.7, 4.8}};
+	const std::vector<data_type> B = {{1.1, 1.2}, {3.5, 3.6}, {2.3, 2.4}, {4.7, 4.8}};
+	std::vector<data_type> C(m * n);
+	const data_type alpha = {1.0, 1.0};
+	const data_type beta = {0.0, 0.0};
 
-    data_type *d_A = nullptr;
-    data_type *d_B = nullptr;
-    data_type *d_C = nullptr;
+	data_type *d_A = nullptr;
+	data_type *d_B = nullptr;
+	data_type *d_C = nullptr;
 
-    cublasOperation_t transa = CUBLAS_OP_N;
-    cublasOperation_t transb = CUBLAS_OP_N;
+	cublasOperation_t transa = CUBLAS_OP_N;
+	cublasOperation_t transb = CUBLAS_OP_N;
 
-    printf("A\n");
-    print_matrix(m, k, A.data(), lda);
-    printf("=====\n");
+	printf("A\n");
+	print_matrix(m, k, A.data(), lda);
+	printf("=====\n");
 
-    printf("B\n");
-    print_matrix(k, n, B.data(), ldb);
-    printf("=====\n");
+	printf("B\n");
+	print_matrix(k, n, B.data(), ldb);
+	printf("=====\n");
 
-    /* step 1: create cublas handle, bind a stream */
-    CUBLAS_CHECK(cublasCreate(&cublasH));
+	/* step 1: create cublas handle, bind a stream */
+	CUBLAS_CHECK(cublasCreate(&cublasH));
 
-    CUDA_CHECK(cudaStreamCreateWithFlags(&stream, cudaStreamNonBlocking));
-    CUBLAS_CHECK(cublasSetStream(cublasH, stream));
+	CUDA_CHECK(cudaStreamCreateWithFlags(&stream, cudaStreamNonBlocking));
+	CUBLAS_CHECK(cublasSetStream(cublasH, stream));
 
-    /* step 2: copy data to device */
-    CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&d_A), sizeof(data_type) * A.size()));
-    CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&d_B), sizeof(data_type) * B.size()));
-    CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&d_C), sizeof(data_type) * C.size()));
+	/* step 2: copy data to device */
+	CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&d_A), sizeof(data_type) * A.size()));
+	CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&d_B), sizeof(data_type) * B.size()));
+	CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&d_C), sizeof(data_type) * C.size()));
 
-    CUDA_CHECK(cudaMemcpyAsync(d_A, A.data(), sizeof(data_type) * A.size(), cudaMemcpyHostToDevice,
-                               stream));
-    CUDA_CHECK(cudaMemcpyAsync(d_B, B.data(), sizeof(data_type) * B.size(), cudaMemcpyHostToDevice,
-                               stream));
+	CUDA_CHECK(cudaMemcpyAsync(d_A, A.data(), sizeof(data_type) * A.size(), cudaMemcpyHostToDevice,
+							   stream));
+	CUDA_CHECK(cudaMemcpyAsync(d_B, B.data(), sizeof(data_type) * B.size(), cudaMemcpyHostToDevice,
+							   stream));
 
-    /* step 3: compute */
-    CUBLAS_CHECK(cublasCgemm3m(cublasH, transa, transb, m, n, k, &alpha, d_A, lda, d_B, ldb, &beta,
-                               d_C, ldc));
+	/* step 3: compute */
+	CUBLAS_CHECK(cublasCgemm3m(cublasH, transa, transb, m, n, k, &alpha, d_A, lda, d_B, ldb, &beta,
+							   d_C, ldc));
 
-    /* step 4: copy data to host */
-    CUDA_CHECK(cudaMemcpyAsync(C.data(), d_C, sizeof(data_type) * C.size(), cudaMemcpyDeviceToHost,
-                               stream));
+	/* step 4: copy data to host */
+	CUDA_CHECK(cudaMemcpyAsync(C.data(), d_C, sizeof(data_type) * C.size(), cudaMemcpyDeviceToHost,
+							   stream));
 
-    CUDA_CHECK(cudaStreamSynchronize(stream));
+	CUDA_CHECK(cudaStreamSynchronize(stream));
 
-    /*
-     *   C = | -20.14 + 18.50j -28.78 + 26.66j |
-     *       | -43.18 + 40.58j -63.34 + 60.26j |
-     */
+	/*
+	 *   C = | -20.14 + 18.50j -28.78 + 26.66j |
+	 *       | -43.18 + 40.58j -63.34 + 60.26j |
+	 */
 
-    printf("C\n");
-    print_matrix(m, n, C.data(), ldc);
-    printf("=====\n");
+	printf("C\n");
+	print_matrix(m, n, C.data(), ldc);
+	printf("=====\n");
 
-    /* free resources */
-    CUDA_CHECK(cudaFree(d_A));
-    CUDA_CHECK(cudaFree(d_B));
-    CUDA_CHECK(cudaFree(d_C));
+	/* free resources */
+	CUDA_CHECK(cudaFree(d_A));
+	CUDA_CHECK(cudaFree(d_B));
+	CUDA_CHECK(cudaFree(d_C));
 
-    CUBLAS_CHECK(cublasDestroy(cublasH));
+	CUBLAS_CHECK(cublasDestroy(cublasH));
 
-    CUDA_CHECK(cudaStreamDestroy(stream));
+	CUDA_CHECK(cudaStreamDestroy(stream));
 
-    CUDA_CHECK(cudaDeviceReset());
+	CUDA_CHECK(cudaDeviceReset());
 
-    return EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }

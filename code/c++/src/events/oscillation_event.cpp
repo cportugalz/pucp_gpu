@@ -1,4 +1,4 @@
-#include "probabilities.h"
+#include "cuda_probabilities.h"
 #include "utils.h"
 #include <iostream>
 

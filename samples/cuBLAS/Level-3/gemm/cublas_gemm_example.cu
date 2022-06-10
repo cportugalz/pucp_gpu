@@ -56,7 +56,7 @@
 
 #include "cublas_utils.h"
 
-using data_type = double;
+using data_type = cuDoubleComplex;
 
 int main(int argc, char *argv[]) {
     cublasHandle_t cublasH = NULL;
@@ -64,23 +64,23 @@ int main(int argc, char *argv[]) {
 
     const int m = 2;
     const int n = 2;
-    const int k = 2;
+    const int k = 3;
     const int lda = 2;
-    const int ldb = 2;
+    const int ldb = 3;
     const int ldc = 2;
     /*
-     *   A = | 1.0 | 2.0 |
-     *       | 3.0 | 4.0 |
+     *   A = | 1.0 | 3.0 |
+     *       | 2.0 | 4.0 |
      *
-     *   B = | 5.0 | 6.0 |
-     *       | 7.0 | 8.0 |
+     *   B = | 5.0 | 7.0 |
+     *       | 6.0 | 8.0 |
      */
 
-    const std::vector<data_type> A = {1.0, 2.0, 3.0, 4.0};
-    const std::vector<data_type> B = {5.0, 6.0, 7.0, 8.0};
+    const std::vector<data_type> A = { {1.0, 1.0}, {2.0, 2.0}, {3.0, 3.0}, {4.0, 4.0}, {5.0, 5.0}, {6.0, 6.0} };
+    const std::vector<data_type> B = { {5.0, 5.0}, {6.0, 6.0}, {7.0, 7.0}, {8.0, 8.0}, {9.0, 9.0}, {10.0, 10.0} };
     std::vector<data_type> C(m * n);
-    const data_type alpha = 1.0;
-    const data_type beta = 0.0;
+    const data_type alpha = {1.0, 1.0};
+    const data_type beta = {0.0, 0.0};
 
     data_type *d_A = nullptr;
     data_type *d_B = nullptr;
@@ -115,7 +115,7 @@ int main(int argc, char *argv[]) {
 
     /* step 3: compute */
     CUBLAS_CHECK(
-        cublasDgemm(cublasH, transa, transb, m, n, k, &alpha, d_A, lda, d_B, ldb, &beta, d_C, ldc));
+        cublasZgemm3m(cublasH, transa, transb, m, n, k, &alpha, d_A, lda, d_B, ldb, &beta, d_C, ldc));
 
     /* step 4: copy data to host */
     CUDA_CHECK(cudaMemcpyAsync(C.data(), d_C, sizeof(data_type) * C.size(), cudaMemcpyDeviceToHost,

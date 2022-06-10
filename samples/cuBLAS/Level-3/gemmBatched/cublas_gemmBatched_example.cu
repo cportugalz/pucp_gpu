@@ -152,7 +152,7 @@ int main(int argc, char *argv[]) {
                                cudaMemcpyHostToDevice, stream));
 
     /* step 3: compute */
-    CUBLAS_CHECK(cublasDgemmBatched(cublasH, transa, transb, m, n, k, &alpha, d_A_array, lda,
+    CUBLAS_CHECK(cublasDgemmBatched(cublasH, transa, transb, m, n, k, &alpha, d_A, lda,
                                     d_B_array, ldb, &beta, d_C_array, ldc, batch_count));
 
     /* step 4: copy data to host */

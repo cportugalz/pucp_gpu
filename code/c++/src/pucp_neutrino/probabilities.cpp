@@ -3,7 +3,7 @@
 #include <eigen3/Eigen/Eigenvalues>
 #include "integrate/_1D/GaussianQuadratures/GaussLegendre.hpp"
 #include <complex>
-
+#include <iostream>
 
 void StandardOscilation(
 	std::complex<double>** _U, double _energy, int _sigN, double _L, double _rho, 
@@ -25,9 +25,18 @@ void InvisibleDecay(
 	DM[0][0] = std::complex<double>(0, -0.5 * _alpha[0] / energy);
 	DM[1][1] = std::complex<double>(0.5 * _dm[0] / energy, -0.5 * _alpha[1] / energy);
 	DM[2][2] = std::complex<double>(0.5 * _dm[1] / energy, -0.5 * _alpha[2] / energy);
+	for(int i=0; i<3; i++){
+		for(int j=0; j<3; j++){
+			std::cout << "DM["<<i<<"]["<<j<<"]"<<DM[i][j] << "\t";
+		}
+		std::cout<< std::endl;
+	}
 	Pot << std::complex<double>(rho * 7.63247 * 0.5 * 1.e-14, 0), DM[0][1], DM[0][2],
 		DM[1][0], DM[0][0], DM[1][2],
 		DM[2][0], DM[2][1], DM[0][0];
+
+	std::cout << Pot;
+	
 	/* Inicializando las matrices para Eigen */
 	Eigen::MatrixXcd UPMNS(3, 3);
 	UPMNS << _U[0][0], _U[0][1], _U[0][2],

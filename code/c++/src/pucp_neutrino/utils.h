@@ -1,7 +1,7 @@
 #ifndef __VIS_H
 #define __VIS_H
 #include <complex>
-#include <eigen3/Eigen/Eigenvalues>
+#include <eigen3/Eigen/Eigen>
 
 class ProbConst {
 	public:

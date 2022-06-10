@@ -4,8 +4,8 @@
 
 .SILENT:
 all: 
-	g++ -std=c++11 main_single.cpp ../pucp_neutrino/Probabilities.cpp ../pucp_neutrino/utils.cpp -I../pucp_neutrino -o main_single
-	g++ -std=c++11 main_threaded.cpp ../pucp_neutrino/Probabilities.cpp ../pucp_neutrino/utils.cpp -I../pucp_neutrino -o main_threaded
+	g++ -std=c++11 main_single.cpp ../pucp_neutrino/probabilities.cpp ../pucp_neutrino/utils.cpp -I../pucp_neutrino -lpthread -o main_single
+	g++ -std=c++11 main_threaded.cpp ../pucp_neutrino/probabilities.cpp ../pucp_neutrino/utils.cpp -I../pucp_neutrino -lpthread -o main_threaded
 
 .SILENT:
 single:
