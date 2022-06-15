@@ -148,7 +148,7 @@ template <typename T> void print_matrix(const int &m, const int &n, const T *A, 
 template <> void print_matrix(const int &m, const int &n, const float *A, const int &lda) {
     for (int i = 0; i < m; i++) {
         for (int j = 0; j < n; j++) {
-            std::printf("%0.2f ", A[j * lda + i]);
+            std::printf("%e ", A[j * lda + i]);
         }
         std::printf("\n");
     }
@@ -157,7 +157,7 @@ template <> void print_matrix(const int &m, const int &n, const float *A, const 
 template <> void print_matrix(const int &m, const int &n, const double *A, const int &lda) {
     for (int i = 0; i < m; i++) {
         for (int j = 0; j < n; j++) {
-            std::printf("%0.2f ", A[j * lda + i]);
+            std::printf("%e ", A[j * lda + i]);
         }
         std::printf("\n");
     }
@@ -166,7 +166,7 @@ template <> void print_matrix(const int &m, const int &n, const double *A, const
 template <> void print_matrix(const int &m, const int &n, const cuComplex *A, const int &lda) {
     for (int i = 0; i < m; i++) {
         for (int j = 0; j < n; j++) {
-            std::printf("%0.2f + %0.2fj ", A[j * lda + i].x, A[j * lda + i].y);
+            std::printf("%e + %ej ", A[j * lda + i].x, A[j * lda + i].y);
         }
         std::printf("\n");
     }
@@ -176,7 +176,7 @@ template <>
 void print_matrix(const int &m, const int &n, const cuDoubleComplex *A, const int &lda) {
     for (int i = 0; i < m; i++) {
         for (int j = 0; j < n; j++) {
-            std::printf("%0.2f + %0.2fj ", A[j * lda + i].x, A[j * lda + i].y);
+            std::printf("%e + %ej ", A[j * lda + i].x, A[j * lda + i].y);
         }
         std::printf("\n");
     }

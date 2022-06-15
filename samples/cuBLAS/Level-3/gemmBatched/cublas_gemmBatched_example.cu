@@ -78,8 +78,9 @@ int main(int argc, char *argv[]) {
      *       | 7.0 | 8.0 | 11.0 | 12.0 |
      */
 
-    const std::vector<std::vector<data_type>> A_array = {{1.0 ,3.0, 2.0, 4.0},
-                                                         {5.0, 7.0, 6.0, 8.0}};
+    // const std::vector<std::vector<data_type>> A_array = {{1.0 ,3.0, 2.0, 4.0},
+    //                                                      {5.0, 7.0, 6.0, 8.0}};
+    const std::vector<std::vector<data_type>> A_array = {{1.0 ,3.0, 2.0, 4.0}};
     const std::vector<std::vector<data_type>> B_array = {{5.0, 7.0, 6.0, 8.0},
                                                          {9.0, 11.0, 10.0, 12.0}};
     std::vector<std::vector<data_type>> C_array(batch_count, std::vector<data_type>(m * n));
@@ -152,7 +153,7 @@ int main(int argc, char *argv[]) {
                                cudaMemcpyHostToDevice, stream));
 
     /* step 3: compute */
-    CUBLAS_CHECK(cublasDgemmBatched(cublasH, transa, transb, m, n, k, &alpha, d_A, lda,
+    CUBLAS_CHECK(cublasDgemmBatched(cublasH, transa, transb, m, n, k, &alpha, d_A_array, lda,
                                     d_B_array, ldb, &beta, d_C_array, ldc, batch_count));
 
     /* step 4: copy data to host */
