@@ -10,7 +10,7 @@ void cuda_StandardOscilation(
 	cuDoubleComplex* _U, double* _energy, int _size_data, int _sigN, double _L, double _rho,
 	double* _dm, double* _alpha, double* _events){
 		cuda_InvisibleDecay(_U, _energy, _size_data, _sigN, _L, _rho, _dm, _alpha, _events);
-	}
+}
 
 
 void cuda_simulation_StandardOscilation(
@@ -83,6 +83,13 @@ __global__ void gpu_invisible_decay(
 __global__ void sum_batched(
 	cuDoubleComplex** Pot, cuDoubleComplex** Hff2, cuDoubleComplex** Hff3, int _batch_count) {
 	int tid = threadIdx.x + blockIdx.x*blockDim.x;
+	//   0		1
+	// 1 4 7	4 7 10
+	// 2 5 8    5 8 11
+	// 3 6 9    6 9 12
+	// Pot =  { { 1,2,3,4,5,6,7,8,9}, {4,5,6,7,8,9,10,11,12}, {}, {} }
+	// Hff2 = { { 1,2,3,4,5,6,7,8,9}, {4,5,6,7,8,9,10,11,12}, {}, {} }
+	// Hff3 = { { 2,4,6,8, 10 ...  }, {...}, { ...}, { ... } }
 	if (tid < _batch_count) {
 		for (int i=0; i<9; i++) {
 				Hff3[tid][i].x = Hff2[tid][i].x + Pot[tid][i].x;
@@ -185,7 +192,7 @@ void cuda_InvisibleDecay(
 		cublasHandle_t cublasH = NULL;
 		cudaStream_t stream = NULL;
 		
-		const data_type alpha = {1.0, 1.0};
+		const data_type alpha = {1.0, 0.0};
 		const data_type beta = {0.0, 0.0};
 		
 		CUBLAS_CHECK(cublasCreate(&cublasH));
@@ -202,6 +209,9 @@ void cuda_InvisibleDecay(
 		// Pot Sum
 		sum_batched<<<blocks, threads>>> (batchedPot, batchedHff2, batchedHff3, _batch_count);
 		cudaDeviceSynchronize();
+		// Hff[0] = U[0] * DM[0] * UC[0] + Pot[0]
+		// Hff[1] = U[1] * DM[1] * UC[1] + Pot[1]
+		// Hff[N-1] = U[N-1] * DM[N-1] * UC[N-1] + Pot[N-1]
 
 		for (int i = 0; i < _batch_count; i++) {
 			cudaMemcpy(host_batchedU[i], device_batchedU[i], sizeof(data_type)* m*n, cudaMemcpyDeviceToHost );

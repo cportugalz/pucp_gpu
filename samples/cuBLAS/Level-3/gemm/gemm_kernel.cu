@@ -61,7 +61,6 @@ using data_type = cuDoubleComplex;
 int main(int argc, char *argv[]) {
     cublasHandle_t cublasH = NULL;
     cudaStream_t stream = NULL;
-
     const int m = 3;
     const int n = 3;
     const int k = 3;
@@ -87,6 +86,35 @@ int main(int argc, char *argv[]) {
         make_cuDoubleComplex(7.362816e-01, 0.0), 
         make_cuDoubleComplex(6.599679e-01, 0.0)
     };
+    // const std::vector<data_type>  A = {
+    //         make_cuDoubleComplex(2.0, 0.0),
+    //         make_cuDoubleComplex(0.0, 3.0),
+    //         make_cuDoubleComplex(4.0, 0.0),
+    //         make_cuDoubleComplex(0.0, -1.0),
+    //         make_cuDoubleComplex(5.0, 0.0),
+    //         make_cuDoubleComplex(0.0, 9.0),
+    //         make_cuDoubleComplex(1.0, 0.0),
+    //         make_cuDoubleComplex(0.0, 2.0),
+    //         make_cuDoubleComplex(6.0, 0.0)
+
+    // };
+    // const std::vector<data_type>  A = {
+    //         make_cuDoubleComplex(1.0, 0.0),
+    //         make_cuDoubleComplex(1.0, 0.0),
+    //         make_cuDoubleComplex(0.0, 0.0),
+    //         make_cuDoubleComplex(0.0, 0.0),
+    //         make_cuDoubleComplex(0.0, 0.0),
+    //         make_cuDoubleComplex(0.0, 0.0),
+    //         make_cuDoubleComplex(0.0, 0.0),
+    //         make_cuDoubleComplex(0.0, 0.0),
+    //         make_cuDoubleComplex(0.0, 0.0)
+    // };
+    // const std::vector<data_type>  A = {
+    //     make_cuDoubleComplex(1,0),
+    //     make_cuDoubleComplex(2,0),
+    //     make_cuDoubleComplex(3,0),
+    //     make_cuDoubleComplex(4,0)};
+    // };
     const std::vector<data_type> B = { 
         make_cuDoubleComplex(0.0, -0.0),  
         make_cuDoubleComplex(0.0, 0.0),  
@@ -98,8 +126,35 @@ int main(int argc, char *argv[]) {
         make_cuDoubleComplex(0.0, 0.0),  
         make_cuDoubleComplex(1.250000e-10, -0.0)
     };
+    // const std::vector<data_type>  B= {
+    //     make_cuDoubleComplex(1.0, 0.0),
+    //     make_cuDoubleComplex(0.0, 7.0),
+    //     make_cuDoubleComplex(0.0, 5.0),
+    //     make_cuDoubleComplex(0.0, 4.0),
+    //     make_cuDoubleComplex(2.0, 0.0),
+    //     make_cuDoubleComplex(1.0, 0.0),
+    //     make_cuDoubleComplex(0.0, -2.0),
+    //     make_cuDoubleComplex(3.0, 0.0),
+    //     make_cuDoubleComplex(5.0, 0.0)
+    // };
+    // const std::vector<data_type>  B= {
+    //     make_cuDoubleComplex(0.0, 0.0),
+    //     make_cuDoubleComplex(0.0, 0.0),
+    //     make_cuDoubleComplex(0.0, 0.0),
+    //     make_cuDoubleComplex(10.0, 0.0),
+    //     make_cuDoubleComplex(0.0, 0.0),
+    //     make_cuDoubleComplex(2.0, 0.0),
+    //     make_cuDoubleComplex(0.0, 0.0),
+    //     make_cuDoubleComplex(0.0, 0.0),
+    //     make_cuDoubleComplex(0.0, 0.0)
+    // };
+    // const std::vector<data_type>  B= {
+    //     make_cuDoubleComplex(5,0),
+    //     make_cuDoubleComplex(6,0),
+    //     make_cuDoubleComplex(7,0),
+    //     make_cuDoubleComplex(8,0)};
     std::vector<data_type> C(m * n);
-    const data_type alpha = {1.0, 1.0};
+    const data_type alpha = {1.0, 0.0};
     const data_type beta = {0.0, 0.0};
 
     data_type *d_A = nullptr;
@@ -135,7 +190,7 @@ int main(int argc, char *argv[]) {
 
     /* step 3: compute */
     CUBLAS_CHECK(
-        cublasZgemm3m(cublasH, transa, transb, m, n, k, &alpha, d_A, lda, d_B, ldb, &beta, d_C, ldc));
+        cublasZgemm(cublasH, transa, transb, m, n, k, &alpha, d_A, lda, d_B, ldb, &beta, d_C, ldc));
 
     /* step 4: copy data to host */
     CUDA_CHECK(cudaMemcpyAsync(C.data(), d_C, sizeof(data_type) * C.size(), cudaMemcpyDeviceToHost,
