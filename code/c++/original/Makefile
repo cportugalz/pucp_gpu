@@ -22,8 +22,8 @@ LDFLAGS+= -Wl,-rpath -Wl,$(PATH_SQUIDS)/$(LIBDIR) -L$(PATH_SQUIDS)/$(LIBDIR) -lS
 all:	Probabilidades	clean	
 
 # Ejecución del programa principal y librerias. Sólo escribir 'make'+ Enter en la lína de comandos, luego ./Prob
-Probabilidades :	Probabilidades.o	MyWrapperINV.o	MyWrapperVEP.o	MyWrapperNSI.o	MyWrapperVIS.o
-	g++	Probabilidades.o	$(LIB)/MyWrapperINV.o	$(LIB)/MyWrapperVEP.o	$(LIB)/MyWrapperNSI.o	$(LIB)/MyWrapperVIS.o	$(LDFLAGS)	-o	Prob
+Probabilidades :	Probabilidades.o	MyWrapperINV.o	MyWrapperVEP.o	MyWrapperNSI.o	MyWrapperVIS.o	MyWrapperDCH.o
+	g++	Probabilidades.o	$(LIB)/MyWrapperINV.o	$(LIB)/MyWrapperVEP.o	$(LIB)/MyWrapperNSI.o	$(LIB)/MyWrapperVIS.o	$(LIB)/MyWrapperDCH.o	$(LDFLAGS)	-o	Prob
 	
 Probabilidades.o :	Probabilidades.c
 	gcc	-c	Probabilidades.c	-o	Probabilidades.o	
@@ -40,7 +40,10 @@ MyWrapperNSI.o :	$(LIB)/anth_MyWrapper_NSI.cc
 MyWrapperVIS.o :	$(LIB)/anth_MyWrapper_VIS.cc
 	g++	-c	$(LIB)/anth_MyWrapper_VIS.cc	-o	$(LIB)/MyWrapperVIS.o
 
+MyWrapperDCH.o :	$(LIB)/anth_MyWrapper_DCH.cc
+	g++	-c	$(LIB)/anth_MyWrapper_DCH.cc	-o	$(LIB)/MyWrapperDCH.o
+
 clean: 
-	rm	-f	Probabilidades.o	$(LIB)/MyWrapperINV.o	$(LIB)/MyWrapperVEP.o	$(LIB)/MyWrapperNSI.o	$(LIB)/MyWrapperVIS.o
+	rm	-f	Probabilidades.o	$(LIB)/MyWrapperINV.o	$(LIB)/MyWrapperVEP.o	$(LIB)/MyWrapperNSI.o	$(LIB)/MyWrapperVIS.o	$(LIB)/MyWrapperDCH.o
 run:
 	./Prob
