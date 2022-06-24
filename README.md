@@ -9,7 +9,7 @@ Revisar la carpeta docs para mayor información de la teoría implementada aqui.
     ```
 3. [Boost](https://www.boost.org/), puedes empezar con la [guía de instalación rápida.](https://www.boost.org/doc/libs/1_79_0/more/getting_started/unix-variants.html)
 
-4. La probabilidad de Decoherencia requiere de la librería SQuIDS (intalador adjunto en code/src/SQuIDS). Descomprimir SQuIDS-master.zip y seguir las indicaciones (requisitos gsl y c++):
+4. La probabilidad de Decoherencia requiere de la librería SQuIDS (intalador adjunto en code/c++/original/). Descomprimir SQuIDS-master.zip y seguir las indicaciones (requisitos gsl y c++):
     1. Entrar a la carpeta SQuIDS-master
     2. Abrir un terminal en esa carpeta y ejecutar el comando: 
     ```bash
