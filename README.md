@@ -11,10 +11,13 @@ Revisar la carpeta docs para mayor información de la teoría implementada aqui.
 
 4. La probabilidad de Decoherencia requiere de la librería SQuIDS (intalador adjunto en code/src/SQuIDS). Descomprimir SQuIDS-master.zip y seguir las indicaciones (requisitos gsl y c++):
     1. Entrar a la carpeta SQuIDS-master
-    2. Abrir un terminal en esa carpeta y ejecutar el comando: make
-    3. Luego: make test
-    4. Finalmente: sudo make install
-    *** Si algo no funciona, revisar el archivo README.md en la carpeta SQuIDS-master
+    2. Abrir un terminal en esa carpeta y ejecutar el comando: 
+    ```bash
+    make
+    ```
+    4. Luego: make test
+    5. Finalmente: sudo make install
+    6. Si algo no funciona, revisar el archivo README.md en la carpeta SQuIDS-master
 
 ## Ejecución  
 
