@@ -15,9 +15,15 @@ Revisar la carpeta docs para mayor información de la teoría implementada aqui.
     ```bash
     make
     ```
-    4. Luego: make test
-    5. Finalmente: sudo make install
-    6. Si algo no funciona, revisar el archivo README.md en la carpeta SQuIDS-master
+    3. Luego:
+    ```bash
+    make test
+    ```
+    4. Finalmente: sudo make install
+    ```bash
+    sudo make install
+    ```
+    5. Si algo no funciona, revisar el archivo README.md en la carpeta SQuIDS-master
 
 ## Ejecución  
 
