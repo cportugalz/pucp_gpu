@@ -3,7 +3,7 @@
 
 .SILENT:
 all: 
-	nvcc -std=c++11 gpu_main_simulation.cpp ../pucp_neutrino/cuda_probabilities.cu -I../pucp_neutrino -lcublas -o gpu_simulation
+	nvcc -std=c++11 gpu_main_simulation.cpp ../pucp_neutrino/cuda_probabilities.cu -I../pucp_neutrino -lcublas -lcusolver -o gpu_simulation
 
 run:
 	./gpu_simulation $(n)

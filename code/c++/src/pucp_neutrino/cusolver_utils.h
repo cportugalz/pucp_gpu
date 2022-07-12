@@ -209,7 +209,7 @@ template <>
 void print_matrix(const int &m, const int &n, const cuDoubleComplex *A, const int &lda) {
     for (int i = 0; i < m; i++) {
         for (int j = 0; j < n; j++) {
-            std::printf("%e + %e ", A[j * lda + i].x, A[j * lda + i].y);
+            std::printf("%0.2f + %0.2fj ", A[j * lda + i].x, A[j * lda + i].y);
         }
         std::printf("\n");
     }

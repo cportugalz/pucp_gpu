@@ -92,18 +92,26 @@ void InvisibleDecay(
 	tmp.compute(Hff);
 	/* Calculamos la matriz S y ordenamos los autovalores */
 	V = tmp.eigenvectors();
+	std::cout << V << std::endl;
+	std::cout << tmp.eigenvalues() << std::endl;
 	S << exp(-ProbConst::I * tmp.eigenvalues()[0] * _L * 1.e9 / ProbConst::GevkmToevsq), DM[0][0], DM[0][0],
 		DM[0][0], exp(-ProbConst::I * tmp.eigenvalues()[1] * _L * 1.e9 / ProbConst::GevkmToevsq), DM[0][0],
 		DM[0][0], DM[0][0], exp(-ProbConst::I * tmp.eigenvalues()[2] * _L * 1.e9 / ProbConst::GevkmToevsq);
+	std::cout << "S:" <<   S << std::endl;
 	S = (V)*S * (V.inverse());
+	std::cout << "S2:" << S << std::endl;
 	// Calculando la matriz de probabilidad
+	std::cout << "P:" << std::endl;
 	for (int i = 0; i < 3; i++)
 	{
 		for (int j = 0; j < 3; j++)
 		{
 			_P[i][j] = abs(S.col(i)[j] * S.col(i)[j]);
+			std::cout << _P[i][j] << "\t";
 		}
+		std::cout << std::endl;
 	} // Fila j , columna i
+	
 }
 
 void NonStandardInteraction(
