@@ -95,11 +95,11 @@ __global__ void sum_batched(
 		for (int i=0; i<9; i++) {
 				Hff3[tid][i].x = Hff2[tid][i].x + Pot[tid][i].x;
 				Hff3[tid][i].y = Hff2[tid][i].y + Pot[tid][i].y;
-				// d_A[tid * 9 + i].x =  Hff2[tid][i].x + Pot[tid][i].x;
-				// d_A[tid * 9 + i].y =  Hff2[tid][i].y + Pot[tid][i].y;
-				(d_A + tid * 9 + i)->x =  10;
-				(d_A + tid * 9 + i)->y =  10;
-				printf("[%d ]%e %ej \n", tid * 9 + i, d_A[tid * 9 + i].x, d_A[tid * 9 + i].y);
+				d_A[tid * 9 + i].x =  Hff3[tid][i].x;
+				d_A[tid * 9 + i].y =  Hff3[tid][i].y;
+				// (d_A + tid * 9 + i)->x =  12;
+				// (d_A + tid * 9 + i)->y =  10;
+				// printf("[%d ]%e %ej \n", tid * 9 + i, d_A[tid * 9 + i].x, d_A[tid * 9 + i].y);
 		}
 	}
 }
@@ -221,66 +221,62 @@ void cuda_InvisibleDecay(
 		// Calculating eigen value with cuSolver
 		cusolverDnHandle_t cusolverH = NULL;
 		gesvdjInfo_t gesvdj_params = NULL;
-		// cuDoubleComplex *h_A = (cuDoubleComplex*) malloc(sizeof(cuDoubleComplex) * _batch_count * m * lda);
 		data_type *d_A = nullptr;    /* lda-by-m-by-batchSize */
 		data_type *h_A = (data_type*) malloc(sizeof(data_type) * _batch_count * m * n);    /* lda-by-m-by-batchSize */
-		// data_type *d_U = nullptr;    /* lda-by-m-by-batchSize */
-		// data_type *h_U = (data_type*) malloc( sizeof(data_type) * ldu * m * _batch_count);    /* lda-by-m-by-_batch_count */
-		// data_type *d_V = nullptr;    /* lda-by-m-by-_batch_count */
-		// data_type *h_V = (data_type*) malloc( sizeof(data_type) * ldv * n * _batch_count);    /* lda-by-m-by-_batch_count */
-		// double* S = (double*) malloc(sizeof(double) * minmn * _batch_count);
-		// double *d_S = nullptr; /* minmn-by-batchSize */
-		// int* info = (int*) malloc(sizeof(int) * _batch_count);
-		// int *d_info = nullptr; /* batchSize */
+		data_type *d_U = nullptr;    /* lda-by-m-by-batchSize */
+		data_type *h_U = (data_type*) malloc( sizeof(data_type) * ldu * m * _batch_count);    /* lda-by-m-by-_batch_count */
+		data_type *d_V = nullptr;    /* lda-by-m-by-_batch_count */
+		data_type *h_V = (data_type*) malloc( sizeof(data_type) * ldv * n * _batch_count);    /* lda-by-m-by-_batch_count */
+		double* S = (double*) malloc(sizeof(cuDoubleComplex) * minmn * _batch_count);
+		double *d_S = nullptr; /* minmn-by-batchSize */
+		int* info = (int*) malloc(sizeof(int) * _batch_count);
+		int *d_info = nullptr; /* batchSize */
 
 
-		// int lwork = 0;            /* size of workspace */
-		// data_type *d_work = nullptr; /* device workspace for getrf */
+		int lwork = 0;            /* size of workspace */
+		data_type *d_work = nullptr; /* device workspace for getrf */
 
-		// const double tol = 1.e-7;
-		// const int max_sweeps = 100;
-		// const int sort_svd = 0;                                  /* don't sort singular values */
-		// const cusolverEigMode_t jobz = CUSOLVER_EIG_MODE_VECTOR; /* compute singular vectors */
-
+		const double tol = 1.e-7;
+		const int max_sweeps = 15;
+		const int sort_svd = 0;                                  /* don't sort singular values */
+		const cusolverEigMode_t jobz = CUSOLVER_EIG_MODE_VECTOR; /* compute singular vectors */
 		CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&d_A), sizeof(data_type) * _batch_count * m * n));
 		sum_batched<<<blocks, threads>>> (batchedPot, batchedHff2, batchedHff3, d_A, _batch_count);
 		cudaDeviceSynchronize();
-		CUDA_CHECK(
-			cudaMemcpy(h_A, d_A, sizeof(data_type) * _batch_count * m * n, cudaMemcpyDeviceToHost));
-		// Hff[0] = U[0] * DM[0] * UC[0] + Pot[0]
+		// CUDA_CHECK(
+		// 	cudaMemcpy(h_A, d_A, sizeof(data_type) * _batch_count * m * n, cudaMemcpyDeviceToHost));
+		// // Hff[0] = U[0] * DM[0] * UC[0] + Pot[0]
 		// Hff[1] = U[1] * DM[1] * UC[1] + Pot[1]
 		// Hff[N-1] = U[N-1] * DM[N-1] * UC[N-1] + Pot[N-1]
 		/* step 1: create cusolver handle, bind a stream */
-		// cusolverDnCreate(&cusolverH);
+		cusolverDnCreate(&cusolverH);
 		// cusolverDnSetStream(cusolverH, stream);
 
 		/* step 2: configuration of syevj */
-		// cusolverDnCreateGesvdjInfo(&gesvdj_params);
+		cusolverDnCreateGesvdjInfo(&gesvdj_params);
 
 		/* default value of tolerance is machine zero */
 		// cusolverDnXgesvdjSetTolerance(gesvdj_params, tol);
 
 		/* default value of max. sweeps is 100 */
-		// cusolverDnXgesvdjSetMaxSweeps(gesvdj_params, max_sweeps);
-		// Pot Sum and copying to d_A of 1D with _batch_count * m * lda
+		cusolverDnXgesvdjSetMaxSweeps(gesvdj_params, max_sweeps);
 		
 
 		/* disable sorting */
-		// cusolverDnXgesvdjSetSortEig(gesvdj_params, sort_svd));
-		// CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&d_U), sizeof(data_type) * ldu * m * _batch_count));
-		// CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&d_V), sizeof(data_type) * ldv * n * _batch_count));
-		// CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&d_S), sizeof(double) *minmn * _batch_count));
-		// CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&d_info), sizeof(int) *_batch_count));
+		// cusolverDnXgesvdjSetSortEig(gesvdj_params, sort_svd);
+		CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&d_U), sizeof(data_type) * ldu * m * _batch_count));
+		CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&d_V), sizeof(data_type) * ldv * n * _batch_count));
+		CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&d_S), sizeof(double) * minmn * _batch_count));
+		CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&d_info), sizeof(int) * _batch_count));
 
 		
-		// cusolverDnZgesvdjBatched_bufferSize(cusolverH, jobz, m, n, d_A, lda, d_S, d_U,
-		// 	ldu, d_V, ldv, &lwork, gesvdj_params,
-		// 	_batch_count);
-		// CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&d_work), sizeof(data_type) * lwork));
+		cusolverDnZgesvdjBatched_bufferSize(cusolverH, jobz, m, n, d_A, lda, d_S, d_U, 
+			ldu, d_V, ldv, &lwork, gesvdj_params, _batch_count);
+		CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&d_work), sizeof(data_type) * lwork));
 		
 		
-		// cusolverDnZgesvdjBatched(cusolverH, jobz, m, n, d_A, lda, d_S, d_U, ldu, d_V,
-		// 	ldv, d_work, lwork, d_info, gesvdj_params, _batch_count);
+		cusolverDnZgesvdjBatched(cusolverH, jobz, m, n, d_A, lda, d_S, d_U, ldu, d_V,
+			ldv, d_work, lwork, d_info, gesvdj_params, _batch_count);
 
 		for (int i = 0; i < _batch_count; i++) {
 			cudaMemcpy(host_batchedU[i], device_batchedU[i], sizeof(data_type)* m*n, cudaMemcpyDeviceToHost );
@@ -290,16 +286,16 @@ void cuda_InvisibleDecay(
 			cudaMemcpy(host_batchedHff2[i], device_batchedHff2[i], sizeof(data_type)* m*n, cudaMemcpyDeviceToHost );
 			cudaMemcpy(host_batchedHff3[i], device_batchedHff3[i], sizeof(data_type)* m*n, cudaMemcpyDeviceToHost );
 		}
-		// CUDA_CHECK(
-		// 	cudaMemcpy(h_A, d_A, sizeof(data_type) * _batch_count * m * n, cudaMemcpyDeviceToHost));
-		// CUDA_CHECK(
-		// 	cudaMemcpy(h_U, d_U, sizeof(data_type) * _batch_count * m * n, cudaMemcpyDeviceToHost));
-		// CUDA_CHECK(
-		// 	cudaMemcpy(h_V, d_V, sizeof(double) * _batch_count * m, cudaMemcpyDeviceToHost));
-		// CUDA_CHECK(
-		// 	cudaMemcpy(S, d_S, sizeof(int) * _batch_count, cudaMemcpyDeviceToHost));
-		// CUDA_CHECK(
-		// 	cudaMemcpy(info, d_info, sizeof(int) * _batch_count, cudaMemcpyDeviceToHost));
+		CUDA_CHECK(
+			cudaMemcpy(h_A, d_A, sizeof(data_type) * _batch_count * m * n, cudaMemcpyDeviceToHost));
+		CUDA_CHECK(
+			cudaMemcpy(h_U, d_U, sizeof(data_type) * _batch_count * m * n, cudaMemcpyDeviceToHost));
+		CUDA_CHECK(
+			cudaMemcpy(h_V, d_V, sizeof(data_type) * _batch_count * m * n, cudaMemcpyDeviceToHost));
+		CUDA_CHECK(
+			cudaMemcpy(S, d_S, sizeof(double) * minmn * _batch_count, cudaMemcpyDeviceToHost));
+		CUDA_CHECK(
+			cudaMemcpy(info, d_info, sizeof(int) * _batch_count, cudaMemcpyDeviceToHost));
 
 		// CUDA_CHECK(cudaStreamSynchronize(stream));	
 		cudaDeviceSynchronize();
@@ -318,7 +314,7 @@ void cuda_InvisibleDecay(
 			printf("Hff3[%d]:\n",i);
 			print_matrix(m, n, host_batchedHff3[i], lda);
 			printf("H_A[%d]:\n",i);
-			print_matrix(m, n, h_A + _batch_count * m * lda + i , 3);
+			print_matrix(m, n, h_A +  m * lda * i , 3);
 			// if (0 == info[i]) {
 			// 	std::printf("matrix %d: gesvdj converges \n", i);
 			// } else if (0 > info[i]) {
@@ -331,24 +327,24 @@ void cuda_InvisibleDecay(
 			// 		/* if info[i] is not zero, Jacobi method does not converge at i-th matrix. */
 			// 	std::printf("WARNING: matrix %d, info = %d : gesvdj does not converge \n", i, info[i]);
 			// }
-			// std::printf("Eigen Values: \n");
-			// for (int i = 0; i < minmn; i++) {
-			// 	std::printf("S0(%d) = %e\n", i + 1, S[_batch_count * m + i]);
-			// }
+			std::printf("Eigen Values: \n");
+			for (int v = 0; v < minmn; v++) {
+				std::printf("S0(%d) = %e\n", v + 1, S[i * m + v]);
+			}
 			
-			// printf("Eigen Vectors:\n");
-			// print_matrix(m,m, &h_V[_batch_count * m * lda], lda);
-			// printf("==== \n");
+			printf("Eigen Vectors:\n");
+			print_matrix(m, m, h_V + i * m * lda, ldv);
+			printf("==== \n");
 		}
 		CUDA_CHECK(cudaFree(d_A));
-		// CUDA_CHECK(cudaFree(d_U));
-		// CUDA_CHECK(cudaFree(d_V));
-		// CUDA_CHECK(cudaFree(d_S));
-		// CUDA_CHECK(cudaFree(d_info));
-		// CUDA_CHECK(cudaFree(d_work));
+		CUDA_CHECK(cudaFree(d_U));
+		CUDA_CHECK(cudaFree(d_V));
+		CUDA_CHECK(cudaFree(d_S));
+		CUDA_CHECK(cudaFree(d_info));
+		CUDA_CHECK(cudaFree(d_work));
 		
-		// cusolverDnDestroyGesvdjInfo(gesvdj_params);
-		// cusolverDnDestroy(cusolverH);
+		cusolverDnDestroyGesvdjInfo(gesvdj_params);
+		cusolverDnDestroy(cusolverH);
 		// CUDA_CHECK(cudaStreamDestroy(stream));
 
 }
