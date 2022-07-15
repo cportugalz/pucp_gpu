@@ -104,6 +104,55 @@ __global__ void sum_batched(
 	}
 }
 
+__device__ cuDoubleComplex exp(cuDoubleComplex _num){
+	return make_cuDoubleComplex(exp(_num.x)*cos(_num.y), exp(_num.x)*sin(_num.y));
+}
+
+
+__global__ void building_SandV(
+	cuDoubleComplex ** _batchedS, cuDoubleComplex** _batchedDM, double* _d_S, 
+	cuDoubleComplex* _d_V,  cuDoubleComplex** _batchedV, int _batch_count, 
+	cuDoubleComplex _I, double _GevkmToevsq, double _L){
+		int tid = threadIdx.x + blockIdx.x*blockDim.x;
+		if (tid < _batch_count) {
+			cuDoubleComplex _minusI = make_cuDoubleComplex(-1*_I.x, -1*_I.y);
+			double L = _L * 1e9/_GevkmToevsq;
+			cuDoubleComplex eigv0 = make_cuDoubleComplex(_d_S[tid*3]*_minusI.x, _d_S[tid*3]*_minusI.y);
+			cuDoubleComplex eigv0xL = make_cuDoubleComplex(L*eigv0.x, L*eigv0.y);
+			cuDoubleComplex eigv1 = make_cuDoubleComplex(_d_S[tid*3+1]*_minusI.x, _d_S[tid*3+1]*_minusI.y);
+			cuDoubleComplex eigv1xL = make_cuDoubleComplex(L*eigv1.x, L * eigv1.y);
+			cuDoubleComplex eigv2 = make_cuDoubleComplex(_d_S[tid*3+2]*_minusI.x, _d_S[tid*3+2]*_minusI.y);
+			cuDoubleComplex eigv2xL = make_cuDoubleComplex(L*eigv2.x, L*eigv2.y);
+			_batchedS[tid][0] = exp(eigv0xL);
+			_batchedS[tid][4] = exp(eigv1xL);
+			_batchedS[tid][8] = exp(eigv2xL);
+			_batchedS[tid][1] = _batchedDM[tid][0];
+			_batchedS[tid][2] = _batchedDM[tid][0];
+			_batchedS[tid][3] = _batchedDM[tid][0];
+			_batchedS[tid][5] = _batchedDM[tid][0];
+			_batchedS[tid][6] = _batchedDM[tid][0];
+			_batchedS[tid][7] = _batchedDM[tid][0];
+			for (int iter=0; iter<9; iter++) {
+				_batchedV[tid][iter].x = _d_V[iter + tid*9].x;
+				_batchedV[tid][iter].y = _d_V[iter + tid*9].y;
+			}
+		}
+	}
+
+
+__global__ void buildP(double** _batchedP, cuDoubleComplex** _batchedS, int _batch_count){
+	int tid = threadIdx.x + blockIdx.x*blockDim.x;
+	if (tid < _batch_count){
+		for (int i=0; i<3; i++){
+			for (int j=0; j<3; j++){
+				cuDoubleComplex N = cuCmul(_batchedS[tid][i*3+j], _batchedS[tid][i*3+j]);
+				_batchedP[tid][i+j*3] = cuCabs(N);
+			}
+		}
+	}
+	
+
+}
 // GPU Invisible Decay
 void cuda_InvisibleDecay(
 	cuDoubleComplex* _U, double* _energy, int _batch_count, int _sigN, double _L, double _rho,
@@ -146,6 +195,30 @@ void cuda_InvisibleDecay(
 		data_type* host_batchedHff3[_batch_count];
 		data_type* device_batchedHff3[_batch_count];
 
+		data_type** batchedS = nullptr;
+		data_type* host_batchedS[_batch_count];
+		data_type* device_batchedS[_batch_count];
+		
+		data_type** batchedS1= nullptr;
+		data_type* host_batchedS1[_batch_count];
+		data_type* device_batchedS1[_batch_count];
+		
+		data_type** batchedS2 = nullptr;
+		data_type* host_batchedS2[_batch_count];
+		data_type* device_batchedS2[_batch_count];
+
+		data_type** batchedV = nullptr;
+		data_type* host_batchedV[_batch_count];
+		data_type* device_batchedV[_batch_count];
+
+		data_type** batchedInvV = nullptr;
+		data_type* host_batchedInvV[_batch_count];
+		data_type* device_batchedInvV[_batch_count];
+		
+		double** batchedP = nullptr;
+		double* host_batchedP[_batch_count];
+		double* device_batchedP[_batch_count];
+
 		for (int i = 0; i < _batch_count; i++) {
 			host_batchedU[i]   = (data_type*) malloc(sizeof(data_type)*m*n);
 			host_batchedDM[i]  = (data_type*) malloc(sizeof(data_type)*m*n);
@@ -153,6 +226,12 @@ void cuda_InvisibleDecay(
 			host_batchedHff[i] = (data_type*) malloc(sizeof(data_type)*m*n);
 			host_batchedHff2[i] = (data_type*) malloc(sizeof(data_type)*m*n);
 			host_batchedHff3[i] = (data_type*) malloc(sizeof(data_type)*m*n);
+			host_batchedS[i] = (data_type*) malloc(sizeof(data_type)*m*n);
+			host_batchedS1[i] = (data_type*) malloc(sizeof(data_type)*m*n);
+			host_batchedS2[i] = (data_type*) malloc(sizeof(data_type)*m*n);
+			host_batchedV[i] = (data_type*) malloc(sizeof(data_type)*m*n);
+			host_batchedInvV[i] = (data_type*) malloc(sizeof(data_type)*m*n);
+			host_batchedP[i] = (double*) malloc(sizeof(double)*m*n);
 
 			for (int j = 0; j < m*n; j++){
 				host_batchedU[i][j]  = make_cuDoubleComplex(0.0,0.0);
@@ -161,6 +240,12 @@ void cuda_InvisibleDecay(
 				host_batchedHff[i][j] = make_cuDoubleComplex(0.0,0.0);
 				host_batchedHff2[i][j] = make_cuDoubleComplex(0.0,0.0);
 				host_batchedHff3[i][j] = make_cuDoubleComplex(0.0,0.0);
+				host_batchedS[i][j] = make_cuDoubleComplex(0.0,0.0);
+				host_batchedS1[i][j] = make_cuDoubleComplex(0.0,0.0);
+				host_batchedS2[i][j] = make_cuDoubleComplex(0.0,0.0);
+				host_batchedV[i][j] = make_cuDoubleComplex(0.0,0.0);
+				host_batchedInvV[i][j] = make_cuDoubleComplex(0.0,0.0);
+				host_batchedP[i][j] = 0;
 			}
 		}
 		for (int i = 0; i < _batch_count; i++) {
@@ -170,6 +255,12 @@ void cuda_InvisibleDecay(
 			CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&device_batchedHff[i]), sizeof(data_type) * m*n));
 			CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&device_batchedHff2[i]), sizeof(data_type) * m*n));
 			CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&device_batchedHff3[i]), sizeof(data_type) * m*n));
+			CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&device_batchedS[i]), sizeof(data_type) * m*n));
+			CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&device_batchedS1[i]), sizeof(data_type) * m*n));
+			CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&device_batchedS2[i]), sizeof(data_type) * m*n));
+			CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&device_batchedV[i]), sizeof(data_type) * m*n));
+			CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&device_batchedInvV[i]), sizeof(data_type) * m*n));
+			CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&device_batchedP[i]), sizeof(double) * m*n));
 		}
 	
 		CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&batchedU),  	_batch_count*sizeof(data_type *)));
@@ -178,6 +269,12 @@ void cuda_InvisibleDecay(
 		CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&batchedHff), 	_batch_count*sizeof(data_type *)));
 		CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&batchedHff2), 	_batch_count*sizeof(data_type *)));
 		CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&batchedHff3), 	_batch_count*sizeof(data_type *)));
+		CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&batchedS), 	_batch_count*sizeof(data_type *)));
+		CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&batchedS1), 	_batch_count*sizeof(data_type *)));
+		CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&batchedS2), 	_batch_count*sizeof(data_type *)));
+		CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&batchedV), 	_batch_count*sizeof(data_type *)));
+		CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&batchedInvV), 	_batch_count*sizeof(data_type *)));
+		CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&batchedP), 	_batch_count*sizeof(double *)));
 		for (int i = 0; i < _batch_count; i++) {
 			CUDA_CHECK(cudaMemcpy(device_batchedU[i], host_batchedU[i], sizeof(data_type) * m*n, cudaMemcpyHostToDevice));
 			CUDA_CHECK(cudaMemcpy(device_batchedDM[i], host_batchedDM[i], sizeof(data_type) * m*n, cudaMemcpyHostToDevice));
@@ -185,6 +282,12 @@ void cuda_InvisibleDecay(
 			CUDA_CHECK(cudaMemcpy(device_batchedHff[i], host_batchedHff[i], sizeof(data_type) * m*n, cudaMemcpyHostToDevice));
 			CUDA_CHECK(cudaMemcpy(device_batchedHff2[i], host_batchedHff2[i], sizeof(data_type) * m*n, cudaMemcpyHostToDevice));
 			CUDA_CHECK(cudaMemcpy(device_batchedHff3[i], host_batchedHff3[i], sizeof(data_type) * m*n, cudaMemcpyHostToDevice));
+			CUDA_CHECK(cudaMemcpy(device_batchedS[i], host_batchedS[i], sizeof(data_type) * m*n, cudaMemcpyHostToDevice));
+			CUDA_CHECK(cudaMemcpy(device_batchedS1[i], host_batchedS1[i], sizeof(data_type) * m*n, cudaMemcpyHostToDevice));
+			CUDA_CHECK(cudaMemcpy(device_batchedS2[i], host_batchedS2[i], sizeof(data_type) * m*n, cudaMemcpyHostToDevice));
+			CUDA_CHECK(cudaMemcpy(device_batchedV[i], host_batchedV[i], sizeof(data_type) * m*n, cudaMemcpyHostToDevice));
+			CUDA_CHECK(cudaMemcpy(device_batchedInvV[i], host_batchedInvV[i], sizeof(data_type) * m*n, cudaMemcpyHostToDevice));
+			CUDA_CHECK(cudaMemcpy(device_batchedP[i], host_batchedP[i], sizeof(double) * m*n, cudaMemcpyHostToDevice));
 		}
 		cudaMemcpy(batchedU, device_batchedU, sizeof(data_type*)*_batch_count, cudaMemcpyHostToDevice);
 		cudaMemcpy(batchedDM, device_batchedDM, sizeof(data_type*)*_batch_count, cudaMemcpyHostToDevice);
@@ -192,6 +295,12 @@ void cuda_InvisibleDecay(
 		cudaMemcpy(batchedHff, device_batchedHff, sizeof(data_type*)*_batch_count, cudaMemcpyHostToDevice);
 		cudaMemcpy(batchedHff2, device_batchedHff2, sizeof(data_type*)*_batch_count, cudaMemcpyHostToDevice);
 		cudaMemcpy(batchedHff3, device_batchedHff3, sizeof(data_type*)*_batch_count, cudaMemcpyHostToDevice);
+		cudaMemcpy(batchedS, device_batchedS, sizeof(data_type*)*_batch_count, cudaMemcpyHostToDevice);
+		cudaMemcpy(batchedS1, device_batchedS1, sizeof(data_type*)*_batch_count, cudaMemcpyHostToDevice);
+		cudaMemcpy(batchedS2, device_batchedS2, sizeof(data_type*)*_batch_count, cudaMemcpyHostToDevice);
+		cudaMemcpy(batchedV, device_batchedV, sizeof(data_type*)*_batch_count, cudaMemcpyHostToDevice);
+		cudaMemcpy(batchedInvV, device_batchedInvV, sizeof(data_type*)*_batch_count, cudaMemcpyHostToDevice);
+		cudaMemcpy(batchedP, device_batchedP, sizeof(double*)*_batch_count, cudaMemcpyHostToDevice);
 
 		printf("Calling Invisible Decay Kernel with %d blocks and %.0f threads per block\n", blocks, threads);
 		gpu_invisible_decay<<<blocks, threads>>>(
@@ -236,16 +345,14 @@ void cuda_InvisibleDecay(
 		int lwork = 0;            /* size of workspace */
 		data_type *d_work = nullptr; /* device workspace for getrf */
 
-		const double tol = 1.e-7;
+		// const double tol = 1.e-7;
 		const int max_sweeps = 15;
-		const int sort_svd = 0;                                  /* don't sort singular values */
+		// const int sort_svd = 0;                                  /* don't sort singular values */
 		const cusolverEigMode_t jobz = CUSOLVER_EIG_MODE_VECTOR; /* compute singular vectors */
 		CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&d_A), sizeof(data_type) * _batch_count * m * n));
 		sum_batched<<<blocks, threads>>> (batchedPot, batchedHff2, batchedHff3, d_A, _batch_count);
 		cudaDeviceSynchronize();
-		// CUDA_CHECK(
-		// 	cudaMemcpy(h_A, d_A, sizeof(data_type) * _batch_count * m * n, cudaMemcpyDeviceToHost));
-		// // Hff[0] = U[0] * DM[0] * UC[0] + Pot[0]
+		// Hff[0] = U[0] * DM[0] * UC[0] + Pot[0]
 		// Hff[1] = U[1] * DM[1] * UC[1] + Pot[1]
 		// Hff[N-1] = U[N-1] * DM[N-1] * UC[N-1] + Pot[N-1]
 		/* step 1: create cusolver handle, bind a stream */
@@ -269,14 +376,32 @@ void cuda_InvisibleDecay(
 		CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&d_S), sizeof(double) * minmn * _batch_count));
 		CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&d_info), sizeof(int) * _batch_count));
 
-		
 		cusolverDnZgesvdjBatched_bufferSize(cusolverH, jobz, m, n, d_A, lda, d_S, d_U, 
 			ldu, d_V, ldv, &lwork, gesvdj_params, _batch_count);
 		CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&d_work), sizeof(data_type) * lwork));
 		
-		
 		cusolverDnZgesvdjBatched(cusolverH, jobz, m, n, d_A, lda, d_S, d_U, ldu, d_V,
 			ldv, d_work, lwork, d_info, gesvdj_params, _batch_count);
+
+		// building S from eigenvalues and ordering V to array of vectors
+		building_SandV<<<blocks, threads>>> (
+			batchedS, batchedDM, d_S, d_V, batchedV, _batch_count, 
+			make_cuDoubleComplex(ProbConst::I.real(), ProbConst::I.imag()), 
+			ProbConst::GevkmToevsq, _L);
+		// building the inverse of V from batchedV
+		CUBLAS_CHECK(
+			cublasZmatinvBatched(
+				cublasH, n, (const cuDoubleComplex * const *) batchedV, lda, batchedInvV, lda,
+				d_info, _batch_count)
+		);
+		// S = S*V * Vinv
+		CUBLAS_CHECK(cublasZgemmBatched(
+			cublasH, CUBLAS_OP_N, CUBLAS_OP_N, m, n, k, &alpha, (const data_type * const *)batchedV, lda,
+			(const data_type*  const*) batchedS, ldb, &beta, batchedS1, ldc, _batch_count));
+		CUBLAS_CHECK(cublasZgemmBatched(
+			cublasH, CUBLAS_OP_N, CUBLAS_OP_N, m, n, k, &alpha, (const data_type * const *)batchedS1, lda,
+			(const data_type*  const*) batchedInvV, ldb, &beta, batchedS2, ldc, _batch_count));
+		buildP<<<blocks, threads>>>(batchedP, batchedS2, _batch_count);
 
 		for (int i = 0; i < _batch_count; i++) {
 			cudaMemcpy(host_batchedU[i], device_batchedU[i], sizeof(data_type)* m*n, cudaMemcpyDeviceToHost );
@@ -285,17 +410,16 @@ void cuda_InvisibleDecay(
 			cudaMemcpy(host_batchedHff[i], device_batchedHff[i], sizeof(data_type)* m*n, cudaMemcpyDeviceToHost );
 			cudaMemcpy(host_batchedHff2[i], device_batchedHff2[i], sizeof(data_type)* m*n, cudaMemcpyDeviceToHost );
 			cudaMemcpy(host_batchedHff3[i], device_batchedHff3[i], sizeof(data_type)* m*n, cudaMemcpyDeviceToHost );
+			cudaMemcpy(host_batchedS[i], device_batchedS[i], sizeof(data_type)* m*n, cudaMemcpyDeviceToHost );
+			cudaMemcpy(host_batchedS2[i], device_batchedS2[i], sizeof(data_type)* m*n, cudaMemcpyDeviceToHost );
+			cudaMemcpy(host_batchedV[i], device_batchedV[i], sizeof(data_type)* m*n, cudaMemcpyDeviceToHost );
+			cudaMemcpy(host_batchedP[i], device_batchedP[i], sizeof(double)* m*n, cudaMemcpyDeviceToHost );
 		}
-		CUDA_CHECK(
-			cudaMemcpy(h_A, d_A, sizeof(data_type) * _batch_count * m * n, cudaMemcpyDeviceToHost));
-		CUDA_CHECK(
-			cudaMemcpy(h_U, d_U, sizeof(data_type) * _batch_count * m * n, cudaMemcpyDeviceToHost));
-		CUDA_CHECK(
-			cudaMemcpy(h_V, d_V, sizeof(data_type) * _batch_count * m * n, cudaMemcpyDeviceToHost));
-		CUDA_CHECK(
-			cudaMemcpy(S, d_S, sizeof(double) * minmn * _batch_count, cudaMemcpyDeviceToHost));
-		CUDA_CHECK(
-			cudaMemcpy(info, d_info, sizeof(int) * _batch_count, cudaMemcpyDeviceToHost));
+		CUDA_CHECK(cudaMemcpy(h_A, d_A, sizeof(data_type) * _batch_count * m * n, cudaMemcpyDeviceToHost));
+		CUDA_CHECK(cudaMemcpy(h_U, d_U, sizeof(data_type) * _batch_count * m * n, cudaMemcpyDeviceToHost));
+		CUDA_CHECK(cudaMemcpy(h_V, d_V, sizeof(data_type) * _batch_count * m * n, cudaMemcpyDeviceToHost));
+		CUDA_CHECK(cudaMemcpy(S, d_S, sizeof(double) * minmn * _batch_count, cudaMemcpyDeviceToHost));
+		CUDA_CHECK(cudaMemcpy(info, d_info, sizeof(int) * _batch_count, cudaMemcpyDeviceToHost));
 
 		// CUDA_CHECK(cudaStreamSynchronize(stream));	
 		cudaDeviceSynchronize();
@@ -315,26 +439,20 @@ void cuda_InvisibleDecay(
 			print_matrix(m, n, host_batchedHff3[i], lda);
 			printf("H_A[%d]:\n",i);
 			print_matrix(m, n, h_A +  m * lda * i , 3);
-			// if (0 == info[i]) {
-			// 	std::printf("matrix %d: gesvdj converges \n", i);
-			// } else if (0 > info[i]) {
-			// 	/* only info[0] shows if some input parameter is wrong.
-			// 	* If so, the error is CUSOLVER_STATUS_INVALID_VALUE.
-			// 	*/
-			// 	std::printf("Error: %d-th parameter is wrong \n", -info[i]);
-			// 	exit(1);
-			// } else { /* info = m+1 */
-			// 		/* if info[i] is not zero, Jacobi method does not converge at i-th matrix. */
-			// 	std::printf("WARNING: matrix %d, info = %d : gesvdj does not converge \n", i, info[i]);
-			// }
 			std::printf("Eigen Values: \n");
 			for (int v = 0; v < minmn; v++) {
 				std::printf("S0(%d) = %e\n", v + 1, S[i * m + v]);
 			}
-			
 			printf("Eigen Vectors:\n");
 			print_matrix(m, m, h_V + i * m * lda, ldv);
-			printf("==== \n");
+			printf("S[%d]:\n", i);
+			print_matrix(m, m, host_batchedS[i], lda);
+			printf("V[%d]:\n", i);
+			print_matrix(m, m, host_batchedV[i], lda);
+			printf("S2[%d]:\n", i);
+			print_matrix(m, m, host_batchedS2[i], lda);
+			printf("P[%d]:\n", i);
+			print_matrix(m, m, host_batchedP[i], lda);
 		}
 		CUDA_CHECK(cudaFree(d_A));
 		CUDA_CHECK(cudaFree(d_U));

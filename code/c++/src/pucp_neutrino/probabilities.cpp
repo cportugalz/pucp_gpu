@@ -92,8 +92,6 @@ void InvisibleDecay(
 	tmp.compute(Hff);
 	/* Calculamos la matriz S y ordenamos los autovalores */
 	V = tmp.eigenvectors();
-	std::cout << V << std::endl;
-	std::cout << tmp.eigenvalues() << std::endl;
 	S << exp(-ProbConst::I * tmp.eigenvalues()[0] * _L * 1.e9 / ProbConst::GevkmToevsq), DM[0][0], DM[0][0],
 		DM[0][0], exp(-ProbConst::I * tmp.eigenvalues()[1] * _L * 1.e9 / ProbConst::GevkmToevsq), DM[0][0],
 		DM[0][0], DM[0][0], exp(-ProbConst::I * tmp.eigenvalues()[2] * _L * 1.e9 / ProbConst::GevkmToevsq);
