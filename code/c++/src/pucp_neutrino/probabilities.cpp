@@ -3,7 +3,7 @@
 #include <eigen3/Eigen/Eigenvalues>
 #include "integrate/_1D/GaussianQuadratures/GaussLegendre.hpp"
 #include <complex>
-
+#include <iostream>
 
 void StandardOscilation(
 	std::complex<double>** _U, double _energy, int _sigN, double _L, double _rho, 
@@ -19,15 +19,39 @@ void InvisibleDecay(
 	Eigen::MatrixXcd S(3, 3);
 	Eigen::MatrixXcd V(3, 3);
 	double energy = _energy * 1e9;
+	printf("Energy:%e\n", energy);
+	printf("U:\n");
+	for(int i=0; i<3; i++){
+		for(int j=0; j<3; j++){
+			printf("%e + %e\t",_U[i][j].real(),_U[i][j].imag());
+		}
+		printf("\n");
+	}
 	double rho = _sigN * _rho;
     std::complex<double> DM[3][3] = { std::complex<double>(0, 0) };
 	/* Matriz de masas y Decay */
 	DM[0][0] = std::complex<double>(0, -0.5 * _alpha[0] / energy);
 	DM[1][1] = std::complex<double>(0.5 * _dm[0] / energy, -0.5 * _alpha[1] / energy);
 	DM[2][2] = std::complex<double>(0.5 * _dm[1] / energy, -0.5 * _alpha[2] / energy);
+	printf("DM:\n");
+	for(int i=0; i<3; i++){
+		for(int j=0; j<3; j++){
+			printf("%e + %e\t", DM[i][j].real(), DM[i][j].imag());
+		}
+		printf("\n");
+	}
 	Pot << std::complex<double>(rho * 7.63247 * 0.5 * 1.e-14, 0), DM[0][1], DM[0][2],
 		DM[1][0], DM[0][0], DM[1][2],
 		DM[2][0], DM[2][1], DM[0][0];
+
+	printf("Pot:\n");
+	for(int i=0; i<3; i++){
+		for(int j=0; j<3; j++){
+			printf("%e  + %e\t", Pot(i,j).real(), Pot(i,j).imag());
+		}
+		printf("\n");
+	}
+	
 	/* Inicializando las matrices para Eigen */
 	Eigen::MatrixXcd UPMNS(3, 3);
 	UPMNS << _U[0][0], _U[0][1], _U[0][2],
@@ -38,8 +62,32 @@ void InvisibleDecay(
 		DM[1][0], DM[1][1], DM[1][2],
 		DM[2][0], DM[2][1], DM[2][2];
 	/* Hamiltoniano final efectivo */
-	Hff = UPMNS * Hd * UPMNS.adjoint() + Pot;
+	Hff = UPMNS * Hd;
+	printf("Hff:\n");
+	for (int i=0; i<3; i++){
+		for (int j=0; j<3; j++){
+			printf("%e + %e\t", Hff(i,j).real(), Hff(i,j).imag());
+		}
+		printf("\n");
+	}
+	//* UPMNS.adjoint() + Pot;
 	/* Calculando los autovalores y autovectores */
+	Hff = Hff * UPMNS.adjoint();
+	printf("Hff2:\n");
+	for (int i=0; i<3; i++){
+		for (int j=0; j<3; j++){
+			printf("%e + %e\t", Hff(i,j).real(), Hff(i,j).imag());
+		}
+		printf("\n");
+	}
+	Hff = Hff + Pot;
+	printf("Hff3:\n");
+	for (int i=0; i<3; i++){
+		for (int j=0; j<3; j++){
+			printf("%e + %e\t", Hff(i,j).real(), Hff(i,j).imag());
+		}
+		printf("\n");
+	}
 	Eigen::ComplexEigenSolver<Eigen::MatrixXcd> tmp;
 	tmp.compute(Hff);
 	/* Calculamos la matriz S y ordenamos los autovalores */
@@ -47,15 +95,21 @@ void InvisibleDecay(
 	S << exp(-ProbConst::I * tmp.eigenvalues()[0] * _L * 1.e9 / ProbConst::GevkmToevsq), DM[0][0], DM[0][0],
 		DM[0][0], exp(-ProbConst::I * tmp.eigenvalues()[1] * _L * 1.e9 / ProbConst::GevkmToevsq), DM[0][0],
 		DM[0][0], DM[0][0], exp(-ProbConst::I * tmp.eigenvalues()[2] * _L * 1.e9 / ProbConst::GevkmToevsq);
+	std::cout << "S:" <<   S << std::endl;
 	S = (V)*S * (V.inverse());
+	std::cout << "S2:" << S << std::endl;
 	// Calculando la matriz de probabilidad
+	std::cout << "P:" << std::endl;
 	for (int i = 0; i < 3; i++)
 	{
 		for (int j = 0; j < 3; j++)
 		{
 			_P[i][j] = abs(S.col(i)[j] * S.col(i)[j]);
+			std::cout << _P[i][j] << "\t";
 		}
+		std::cout << std::endl;
 	} // Fila j , columna i
+	
 }
 
 void NonStandardInteraction(
