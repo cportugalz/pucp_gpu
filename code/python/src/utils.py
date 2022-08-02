@@ -1,6 +1,7 @@
 from os import TMP_MAX
 import numpy as np
 import scipy as sp
+from scipy.sparse.linalg import LinearOperator
 
 class ProbConst:
 
@@ -9,6 +10,9 @@ class ProbConst:
     hbar = 6.58211928*1.e-25
     clight = 299792458
     GevkmToevsq = 0.197327
+
+def square(x):
+    return x * x
 
 def make_umns(_sg, _th, _dcp):
     
@@ -40,10 +44,10 @@ def dGdE(mi, mf, Ei, Ef, coup):
     
     if coup == 1:
         if ei / xif <= ef and ef <= ei:
-            tmp = (1.0 / np.sqrt(1 - mi / np.pow(ei * 1.e9, 2))) * (xif / (xif - 1)) * (1. / (ei * ef)) * (np.pow(ei + np.sqrt(xif) * ef) / np.pow(np.sqrt(xif) + 1, 2))
+            tmp = (1.0 / np.sqrt(1 - mi / pow(ei * 1.e9, 2))) * (xif / (xif - 1)) * (1. / (ei * ef)) * (pow(ei + np.sqrt(xif) * ef, 2) / pow(np.sqrt(xif) + 1, 2))
     else:
         if ei / xif <= ef and ef <= ei:
-            tmp = (1.0 / np.sqrt(1 - mi / np.pow(ei * 1.e9, 2))) * (xif / (xif - 1)) * (1. / (ei * ef)) * (np.pow(ei - np.sqrt(xif) * ef) / np.pow(np.sqrt(xif) - 1, 2))
+            tmp = (1.0 / np.sqrt(1 - mi / pow(ei * 1.e9, 2))) * (xif / (xif - 1)) * (1. / (ei * ef)) * (pow(ei - np.sqrt(xif) * ef, 2) / pow(np.sqrt(xif) - 1, 2))
     
     return tmp
 
@@ -56,33 +60,25 @@ def dGbdE(mi, mf, Ei, Ef, coup):
     
     if coup == 1:
         if ei / xif <= ef and ef <= ei:
-            tmp = (1.0 / np.sqrt(1 - mi / np.pow(ei * 1.e9, 2))) * (xif / (xif - 1)) * ((ei - ef) / (ei * ef)) * ((xif * ef - ei) / np.pow(np.sqrt(xif) + 1, 2))
+            tmp = (1.0 / np.sqrt(1 - mi / pow(ei * 1.e9, 2))) * (xif / (xif - 1)) * ((ei - ef) / (ei * ef)) * ((xif * ef - ei) / pow(np.sqrt(xif) + 1, 2))
     else:
         if ei / xif <= ef and ef <= ei:
-            tmp = (1.0 / np.sqrt(1 - mi / np.pow(ei * 1.e9, 2))) * (xif / (xif - 1)) * ((ei - ef) / (ei * ef)) * ((xif * ef - ei) / np.pow(np.sqrt(xif) - 1, 2))
+            tmp = (1.0 / np.sqrt(1 - mi / pow(ei * 1.e9, 2))) * (xif / (xif - 1)) * ((ei - ef) / (ei * ef)) * ((xif * ef - ei) / pow(np.sqrt(xif) - 1, 2))
     
     return tmp
 
 def PhiIntegration(_ei, _mss, _Pot, _enf, _l, _th, _d, _alpha, _tfi, _tsi, _tff, _tsf, _tpar, _thij, _tqcoup):
     
-    Eni = _ei * 1.e-9
+    Eni = _ei * 1.e9
     ef = _enf * 1.e-9
-    dist = _l * 1.e-9 / ProbConst.GevkmToevsq
+    dist = _l * 1.e9 / ProbConst.GevkmToevsq
 
-    Utemp = np.ndarray((3,3))
-    Htemp = np.ndarray((3,3))
+    Utemp = np.ndarray((3,3), dtype=np.complex)
+    Htemp = np.ndarray((3,3), dtype=np.complex)
 
     _U = make_umns(_tsi, _th, _d)
     
-    Utemp[0,0] = _U[0,0]
-    Utemp[0,1] = _U[0,1]
-    Utemp[0,2] = _U[0,2]
-    Utemp[1,0] = _U[1,0]
-    Utemp[1,1] = _U[1,1]
-    Utemp[1,2] = _U[1,2]
-    Utemp[2,0] = _U[2,0]
-    Utemp[2,1] = _U[2,1]
-    Utemp[2,2] = _U[2,2]
+    Utemp = np.copy(_U)
     
     Htemp[0,0] = np.complex(0.5 * _mss[0] / Eni, -0.5 * _alpha[0] / Eni)
     Htemp[0,1] = ProbConst.Z0
@@ -94,27 +90,23 @@ def PhiIntegration(_ei, _mss, _Pot, _enf, _l, _th, _d, _alpha, _tfi, _tsi, _tff,
     Htemp[2,1] = ProbConst.Z0
     Htemp[2,2] = np.complex(0.5 * _mss[2] / Eni, -0.5 * _alpha[2] / Eni)
 
-    Htemp = Utemp * Htemp * Utemp.conj().T + _tsi + _Pot
-    tmpVD = sp.linalg.eig(Htemp)
+    temp = Utemp @ Htemp @ np.copy(matrixAdjoint(Utemp)) + (_tsi * _Pot)
 
-    massfisq = [2 * Eni * np.real(tmpVD[0][0]), 2 * Eni * np.real(tmpVD[0][1]), 2 * Eni * np.real(tmpVD[0][2])]
-    alphafi = [-2 * Eni * np.imag(tmpVD[0][0]), -2 * Eni * np.imag(tmpVD[0][1]), -2 * Eni * np.imag(tmpVD[0][2])]
+    eigenvalues, eigenvectors = sp.linalg.eig(temp) # no hermitian matrix
 
-    Umati = tmpVD[1]
+    massfisq = [2 * Eni * np.real(eigenvalues[0]), 2 * Eni * np.real(eigenvalues[1]), 2 * Eni * np.real(eigenvalues[2])]
+    alphafi = [-2 * Eni * np.imag(eigenvalues[0]), -2 * Eni * np.imag(eigenvalues[1]), -2 * Eni * np.imag(eigenvalues[2])]
+
+    Umati = eigenvectors
+
     Umatinvi = np.linalg.inv(Umati)
 
-    Cmati = Umati.transpose * Utemp.conj()
+    Cmati = Umati.transpose() @ Utemp.conj()
+
 
     _U = make_umns(_tsf, _th, _d)
-    Utemp[0,0] = _U[0,0]
-    Utemp[0,1] = _U[0,1]
-    Utemp[0,2] = _U[0,2]
-    Utemp[1,0] = _U[1,0]
-    Utemp[1,1] = _U[1,1]
-    Utemp[1,2] = _U[1,2]
-    Utemp[2,0] = _U[2,0]
-    Utemp[2,1] = _U[2,1]
-    Utemp[2,2] = _U[2,2]
+
+    Utemp = np.copy(_U)
     
     Htemp[0,0] = np.complex(0.5 * _mss[0] / _enf, -0.5 * _alpha[0] / _enf)
     Htemp[0,1] = ProbConst.Z0
@@ -126,16 +118,15 @@ def PhiIntegration(_ei, _mss, _Pot, _enf, _l, _th, _d, _alpha, _tfi, _tsi, _tff,
     Htemp[2,1] = ProbConst.Z0
     Htemp[2,2] = np.complex(0.5 * _mss[2] / _enf, -0.5 * _alpha[2] / _enf)
 
-    Htemp = Utemp * Htemp * Utemp.conj().T + _tsf + _Pot
+    temp = (Utemp @ Htemp @ np.copy(matrixAdjoint(Utemp))) + (_tsf * _Pot)
 
-    tmpVD = sp.linalg.eig(Htemp)
+    eigenvalues, eigenvectors = np.linalg.eig(temp)
+    massffsq = [2 * _enf * np.real(eigenvalues[0]), 2 * _enf * np.real(eigenvalues[1]), 2 * _enf * np.real(eigenvalues[2])]
+    alphaff = [-2 * _enf * np.imag(eigenvalues[0]), -2 * _enf * np.imag(eigenvalues[1]), -2 * _enf * np.imag(eigenvalues[2])]
 
-    massffsq = [2 * Eni * np.real(tmpVD[0][0]), 2 * Eni * np.real(tmpVD[0][1]), 2 * Eni * np.real(tmpVD[0][2])]
-    alphaff = [-2 * Eni * np.imag(tmpVD[0][0]), -2 * Eni * np.imag(tmpVD[0][1]), -2 * Eni * np.imag(tmpVD[0][2])]
+    Umatf = eigenvectors
 
-    Umatf = tmpVD[1]
-
-    Cmatinvf = Umatf.transpose * Utemp.conj()
+    Cmatinvf = Umatf.transpose() @ Utemp.conj()
     Cmatinvf = np.linalg.inv(Cmatinvf)
 
     theta = 0
@@ -151,13 +142,21 @@ def PhiIntegration(_ei, _mss, _Pot, _enf, _l, _th, _d, _alpha, _tfi, _tsi, _tff,
         for p in range(3):
             for h in range(3):
                 for n in range(3):
-                    sum += np.real(Umatinvi[:,_tfi][i] * np.conj(Umatinvi[:,_tfi][p]) * Umatf[:,h][_tff] * np.conj(Umatf[:,n][_tff]) * (((ef / _ei) * (alphafi[i] + alphafi[p]) - (alphaff[h] + alphaff[n]) - ProbConst.I * ((ef / _ei) * ((massfisq[i]) - (massfisq[p])) - ((massffsq[h]) - (massffsq[n])))) / (np.pow((ef / _ei) * (alphafi[i] + alphafi[p]) - (alphaff[h] + alphaff[n]),2) + np.pow((ef / _ei) * ((massfisq[i]) - (massfisq[p])) - ((massffsq[h]) - (massffsq[n])),2))) * (np.exp(-ProbConst.I * ((massffsq[h]) - (massffsq[n])) / (2 * _enf) * dist) * np.exp(-((alphaff[h] + alphaff[n]) / (2 / _enf)) * dist) - np.exp(-ProbConst.T * ((massfisq[i]) - (massfisq[p])) / (2 * Eni) * dist) * np.exp(-((alphafi[i] + alphafi[p]) / (2 * Eni)) * dist)) * Cmatinvf[:,h][_thij] * np.conj(Cmatinvf[:,n][_thij]) * Cmati[:,_tpar][i] * np.conj(Cmati[:,_tpar][p]))
+                    sum = sum + np.real(Umatinvi[:,_tfi][i] * np.conj(Umatinvi[:,_tfi][p]) * Umatf[:,h][_tff] * np.conj(Umatf[:,n][_tff]) * (((ef / _ei) * (alphafi[i] + alphafi[p]) - (alphaff[h] + alphaff[n]) - ProbConst.I * ((ef / _ei) * ((massfisq[i]) - (massfisq[p])) - ((massffsq[h]) - (massffsq[n])))) / (square((ef / _ei) * (alphafi[i] + alphafi[p]) - (alphaff[h] + alphaff[n])) + square((ef / _ei) * ((massfisq[i]) - (massfisq[p])) - ((massffsq[h]) - (massffsq[n]))))) * (np.exp(-ProbConst.I * ((massffsq[h]) - (massffsq[n])) / (2 * _enf) * dist) * np.exp(-((alphaff[h] + alphaff[n]) / (2 * _enf)) * dist) - np.exp(-ProbConst.I * ((massfisq[i]) - (massfisq[p])) / (2 * Eni) * dist) * np.exp(-((alphafi[i] + alphafi[p]) / (2 * Eni)) * dist)) * Cmatinvf[:,h][_thij] * np.conj(Cmatinvf[:,n][_thij]) * Cmati[:,_tpar][i] * np.conj(Cmati[:,_tpar][p]))
+    
     tmp = 2 * sum * (((ef / _ei) * _alpha[_tpar]) / Eni) * theta
     return tmp
 
-def dotComplexMatrix(A, B):
-    R = np.ndarray((3,3), dtype=np.complex)
-    for i in range(3):
-        for j in range(3):
-            R[i,j] = np.vdot(A[i], B[:,j])
-    return np.copy(R)
+def matrixAdjoint(matrix):
+ 
+    try:
+        determinant = np.linalg.det(matrix)
+        if(determinant!=0):
+            adj = None
+            adj = np.linalg.inv(matrix) * determinant
+            # return cofactor matrix of the given matrix
+            return adj
+        else:
+            raise Exception("singular matrix")
+    except Exception as e:
+        print("could not find adjoint matrix due to",e)

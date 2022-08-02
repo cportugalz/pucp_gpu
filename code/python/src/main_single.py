@@ -1,9 +1,9 @@
+import time
 import numpy as np
 import utils
 import probabilities as prob
 import os
-
-num_simulations = 10
+import argparse
 
 # Standard Oscilation
 d = -1.57
@@ -57,22 +57,38 @@ PrSTD = np.ndarray((3,3))
 PrINV = np.ndarray((3,3))
 PrVEP = np.ndarray((3,3))
 PrNSI = np.ndarray((3,3))
-PrDCH = np.ndarray((3,3))
+
+PrVis_1 = 0.
+PrVis_2 = 0.
 
 U1 = utils.make_umns(s, th, d)
 
 if not os.path.exists('output/'):
     os.mkdir("output")
 
-file = open("output/output.txt", "w")
+parser = argparse.ArgumentParser(description="Pass the number of simulations to run",
+                                 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser.add_argument('-s', '--simulations', type=int, default=10, help='Number of simulations to run')
+args = vars(parser.parse_args())
+
+num_simulations = args["simulations"]
 
 iter_energy = 1
+
+tstart = time.time()
+
+file = open("output/output.txt", "w")
+
 while (iter_energy <= num_simulations):
     energy = iter_energy / 100.0
     prob.StandardOscilation(U1, energy, s, L, rho, dm, alpSTD, PrSTD)
     prob.InvisibleDecay(U1, energy, s, L, rho, dm, alpINV, PrINV)
     prob.ViolationPrincipleDecay(U1, energy, s, L, rho, dm, alpVEP, PrVEP)
-    file.write(f'{energy:.2f},{PrSTD[1][0]:.8f},{PrINV[1][0]:.8f},{PrVEP[1][0]:.8f}\n')
+    prob.NonStandardInteraction(U1, energy, s, L, rho, dm, alpNSI, PrNSI)
+    PrVis_1 = prob.ProbabilityVis(energy, L, rho, th, dm, d, alpINV, mlight, fi_1, si_1, ff_1, sf_1, par, hij, qcoup)
+    PrVis_2 = prob.ProbabilityVis(energy, L, rho, th, dm, d, alpINV, mlight, fi_2, si_2, ff_2, sf_2, par, hij, qcoup)
+    file.write(f'{energy:.2f},{PrSTD[1][0]:.8f},{PrINV[1][0]:.8f},{PrVEP[1][0]:.8f},{PrNSI[1][0]:.8f},{PrVis_1:.8f},{PrVis_2:.8f}\n')
     iter_energy += 1
 
 file.close()
+print("Total time:", time.time() - tstart, "ms")
