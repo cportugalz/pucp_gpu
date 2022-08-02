@@ -1,4 +1,4 @@
-#include "Probabilities.h"
+#include "probabilities.h"
 #include "utils.h"
 #include <eigen3/Eigen/Eigenvalues>
 #include "integrate/_1D/GaussianQuadratures/GaussLegendre.hpp"
@@ -119,7 +119,7 @@ void NonStandardInteraction(
 	} // Fila j , columna i
 }
 
-void ViolationPrincipleDecay(
+void ViolationEquivalencePrinciple(
 	std::complex<double>** _U, double _energy, int _sigN, double _L, double _rho, 
 	double* _dm, double* _gamma, double** _P) {
 	Eigen::MatrixXcd Pot(3, 3);
@@ -166,7 +166,7 @@ void ViolationPrincipleDecay(
 	}
 }
 
-void Probability_Vis(double _energy, double _L, double _rho, double* _th,
+void VisibleDecay(double _energy, double _L, double _rho, double* _th,
 	double* _dm, double d,  double* _alpha, double _mlight, int _tfi, int _tsi, int _tff, 
 	int _tsf, int _tpar, int _thij, int _tqcoup, double* _P) {
 	// Matriz Potencial
