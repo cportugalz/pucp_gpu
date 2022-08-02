@@ -38,6 +38,9 @@ output.txt
 output
 main_single
 main_threaded
+__pycache__/
+seetings.json
+code/c++/src/events/oscillation
 samples/bin
 code/c++/src/events/oscillation
 samples/Samples/5_Domain_Specific/nbody/galaxy_20K.bin
