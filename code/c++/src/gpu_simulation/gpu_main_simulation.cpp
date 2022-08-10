@@ -1,12 +1,16 @@
-#include "cuda_probabilities.h"
+#include "cuda_simulation.h"
 #include <iostream>
 #include <fstream>
 #include <chrono>
 #include <iomanip> // Compatibility  with linux gcc
 #include <complex>
+#include <sys/resource.h>
 
 
 int main(int argc, char* argv[]){
+	struct rlimit rl{1<<28, 1l<<32};
+	setrlimit(RLIMIT_STACK, &rl);
+	printf("Stack size: %lu MiB up to %lu GiB\n", rl.rlim_cur/(1<<20), rl.rlim_max/(1<<30));
 	if(argc < 2){
 		std::cout << "Usage: make n=<your number of simulation>" << std::endl;
 		exit(EXIT_FAILURE);

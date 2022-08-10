@@ -54,3 +54,5 @@ samples/eigen/gemm
 samples/Samples/0_Introduction/vectorAdd/vectoradd
 samples/Samples/5_Domain_Specific/nbody/nbody
 .vscode/settings.json
+samples/Samples/1_Utilities/deviceQuery/deviceQuery
+.vscode/settings.json

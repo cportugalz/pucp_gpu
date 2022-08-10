@@ -99,7 +99,7 @@ int main(int argc, char* argv[]){
 	file_results.close();
 	auto stop_time = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double, std::milli> duration = stop_time - start_time;
-	std::cout << "Total time: " << duration.count() << " ms\n" ;
+	std::cout << "Total time: " << duration.count()/1000 << " s\n" ;
 	delete[] PrNSI;
 	delete[] PrSTD;
 	delete[] PrVEP;
