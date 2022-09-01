@@ -67,9 +67,9 @@ int main(int argc, char* argv[]){
 			StandardOscilation(
 				U1, energy, s, L, rho, dm, alpSTD, PrSTD
 			);
-			// InvisibleDecay(
-			// 	U1, energy, s, L, rho, dm, alpINV, PrINV 
-			// );
+			InvisibleDecay(
+				U1, energy, s, L, rho, dm, alpINV, PrINV 
+			);
 			// ViolationEquivalencePrinciple(
 			// 	U1, energy, s, L, rho, dm, alpVEP, PrVEP 
 			// );        

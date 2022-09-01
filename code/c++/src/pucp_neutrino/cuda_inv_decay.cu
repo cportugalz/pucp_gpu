@@ -257,7 +257,7 @@ void cuda_InvisibleDecay(
 		cudaMemcpy(batchedV, device_batchedV, sizeof(data_type*)*_batch_count, cudaMemcpyHostToDevice);
 		cudaMemcpy(batchedInvV, device_batchedInvV, sizeof(data_type*)*_batch_count, cudaMemcpyHostToDevice);
 		cudaMemcpy(batchedP, device_batchedP, sizeof(double*)*_batch_count, cudaMemcpyHostToDevice);
-
+		clock_t start_time = clock();
 		printf("Calling Invisible Decay Kernel with %d blocks and %.0f threads per block\n", blocks, threads);
 		gpu_invisible_decay<<<blocks, threads>>>(
 			_U, _energy, _batch_count, _sigN, _L, _rho, _dm, _alpha, _events,
@@ -268,7 +268,7 @@ void cuda_InvisibleDecay(
 		// cudaStream_t stream = NULL;
 
 		const data_type alpha = {1.0, 0.0};
-		const data_type beta = {0.0, 0.0};
+		const data_type beta = {1.0, 0.0};
 
 		CUBLAS_CHECK(cublasCreate(&cublasH));
 		// CUDA_CHECK(cudaStreamCreateWithFlags(&stream, cudaStreamNonBlocking));
@@ -302,8 +302,8 @@ void cuda_InvisibleDecay(
 		data_type *d_work = nullptr; /* device workspace for getrf */
 
 		// const double tol = 1.e-7;
-		const int max_sweeps = 15;
-		// const int sort_svd = 0;                                  /* don't sort singular values */
+		// const int max_sweeps = 50;
+		const int sort_svd = 0;                                  /* don't sort singular values */
 		const cusolverEigMode_t jobz = CUSOLVER_EIG_MODE_VECTOR; /* compute singular vectors */
 		CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&d_A), sizeof(data_type) * _batch_count * m * n));
 		sum_batched<<<blocks, threads>>> (batchedPot, batchedHff2, batchedHff3, d_A, _batch_count);
@@ -322,11 +322,11 @@ void cuda_InvisibleDecay(
 		// cusolverDnXgesvdjSetTolerance(gesvdj_params, tol);
 
 		/* default value of max. sweeps is 100 */
-		cusolverDnXgesvdjSetMaxSweeps(gesvdj_params, max_sweeps);
+		// cusolverDnXgesvdjSetMaxSweeps(gesvdj_params, max_sweeps);
 
 
 		/* disable sorting */
-		// cusolverDnXgesvdjSetSortEig(gesvdj_params, sort_svd);
+		cusolverDnXgesvdjSetSortEig(gesvdj_params, sort_svd);
 		CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&d_U), sizeof(data_type) * ldu * m * _batch_count));
 		CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&d_V), sizeof(data_type) * ldv * n * _batch_count));
 		CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&d_S), sizeof(double) * minmn * _batch_count));
@@ -358,58 +358,59 @@ void cuda_InvisibleDecay(
 			cublasH, CUBLAS_OP_N, CUBLAS_OP_N, m, n, k, &alpha, (const data_type * const *)batchedS1, lda,
 			(const data_type*  const*) batchedInvV, ldb, &beta, batchedS2, ldc, _batch_count));
 		buildP<<<blocks, threads>>>(batchedP, batchedS2, _batch_count);
-
+		clock_t stop_time = clock();
+		printf("Computation time: %.7fs\n", (double)(stop_time - start_time)/CLOCKS_PER_SEC);
 		for (int i = 0; i < _batch_count; i++) {
-			// cudaMemcpy(host_batchedU[i], device_batchedU[i], sizeof(data_type)* m*n, cudaMemcpyDeviceToHost );
-			// cudaMemcpy(host_batchedDM[i], device_batchedDM[i], sizeof(data_type)* m*n, cudaMemcpyDeviceToHost );
-			// cudaMemcpy(host_batchedPot[i], device_batchedPot[i], sizeof(data_type)* m*n, cudaMemcpyDeviceToHost );
-			// cudaMemcpy(host_batchedHff[i], device_batchedHff[i], sizeof(data_type)* m*n, cudaMemcpyDeviceToHost );
-			// cudaMemcpy(host_batchedHff2[i], device_batchedHff2[i], sizeof(data_type)* m*n, cudaMemcpyDeviceToHost );
-			// cudaMemcpy(host_batchedHff3[i], device_batchedHff3[i], sizeof(data_type)* m*n, cudaMemcpyDeviceToHost );
-			// cudaMemcpy(host_batchedS[i], device_batchedS[i], sizeof(data_type)* m*n, cudaMemcpyDeviceToHost );
-			// cudaMemcpy(host_batchedS2[i], device_batchedS2[i], sizeof(data_type)* m*n, cudaMemcpyDeviceToHost );
+			cudaMemcpy(host_batchedU[i], device_batchedU[i], sizeof(data_type)* m*n, cudaMemcpyDeviceToHost );
+			cudaMemcpy(host_batchedDM[i], device_batchedDM[i], sizeof(data_type)* m*n, cudaMemcpyDeviceToHost );
+			cudaMemcpy(host_batchedPot[i], device_batchedPot[i], sizeof(data_type)* m*n, cudaMemcpyDeviceToHost );
+			cudaMemcpy(host_batchedHff[i], device_batchedHff[i], sizeof(data_type)* m*n, cudaMemcpyDeviceToHost );
+			cudaMemcpy(host_batchedHff2[i], device_batchedHff2[i], sizeof(data_type)* m*n, cudaMemcpyDeviceToHost );
+			cudaMemcpy(host_batchedHff3[i], device_batchedHff3[i], sizeof(data_type)* m*n, cudaMemcpyDeviceToHost );
+			cudaMemcpy(host_batchedS[i], device_batchedS[i], sizeof(data_type)* m*n, cudaMemcpyDeviceToHost );
+			cudaMemcpy(host_batchedS2[i], device_batchedS2[i], sizeof(data_type)* m*n, cudaMemcpyDeviceToHost );
 			// cudaMemcpy(host_batchedV[i], device_batchedV[i], sizeof(data_type)* m*n, cudaMemcpyDeviceToHost );
 			cudaMemcpy(host_batchedP[i], device_batchedP[i], sizeof(double)* m*n, cudaMemcpyDeviceToHost );
 		}
 		// CUDA_CHECK(cudaMemcpy(h_A, d_A, sizeof(data_type) * _batch_count * m * n, cudaMemcpyDeviceToHost));
-		// CUDA_CHECK(cudaMemcpy(h_U, d_U, sizeof(data_type) * _batch_count * m * n, cudaMemcpyDeviceToHost));
+		CUDA_CHECK(cudaMemcpy(h_U, d_U, sizeof(data_type) * _batch_count * m * n, cudaMemcpyDeviceToHost));
 		// CUDA_CHECK(cudaMemcpy(h_V, d_V, sizeof(data_type) * _batch_count * m * n, cudaMemcpyDeviceToHost));
-		// CUDA_CHECK(cudaMemcpy(S, d_S, sizeof(double) * minmn * _batch_count, cudaMemcpyDeviceToHost));
-		// CUDA_CHECK(cudaMemcpy(info, d_info, sizeof(int) * _batch_count, cudaMemcpyDeviceToHost));
+		CUDA_CHECK(cudaMemcpy(S, d_S, sizeof(double) * minmn * _batch_count, cudaMemcpyDeviceToHost));
+		CUDA_CHECK(cudaMemcpy(info, d_info, sizeof(int) * _batch_count, cudaMemcpyDeviceToHost));
 
 		// CUDA_CHECK(cudaStreamSynchronize(stream));
 		cudaDeviceSynchronize();
 
-		// for (int i=0; i < _batch_count; i++) {
-		// 	printf("U[%d]:\n",i);
-		// 	print_matrix(m, n, host_batchedU[i], lda);
-		// 	printf("DM[%d]:\n",i);
-		// 	print_matrix(m, n, host_batchedDM[i], lda);
-		// 	printf("Pot[%d]:\n",i);
-		// 	print_matrix(m, n, host_batchedPot[i], lda);
-		// 	printf("Hff[%d]:\n",i);
-		// 	print_matrix(m, n, host_batchedHff[i], lda);
-		// 	printf("Hff2[%d]:\n",i);
-		// 	print_matrix(m, n, host_batchedHff2[i], lda);
-		// 	printf("Hff3[%d]:\n",i);
-		// 	print_matrix(m, n, host_batchedHff3[i], lda);
-		// 	printf("H_A[%d]:\n",i);
-		// 	print_matrix(m, n, h_A +  m * lda * i , 3);
-		// 	std::printf("Eigen Values: \n");
-		// 	for (int v = 0; v < minmn; v++) {
-		// 		std::printf("S0(%d) = %e\n", v + 1, S[i * m + v]);
-		// 	}
-		// 	printf("Eigen Vectors:\n");
-		// 	print_matrix(m, m, h_V + i * m * lda, ldv);
-		// 	printf("S[%d]:\n", i);
-		// 	print_matrix(m, m, host_batchedS[i], lda);
-		// 	printf("V[%d]:\n", i);
-		// 	print_matrix(m, m, host_batchedV[i], lda);
-		// 	printf("S2[%d]:\n", i);
-		// 	print_matrix(m, m, host_batchedS2[i], lda);
-		// 	printf("P[%d]:\n", i);
-		// 	print_matrix(m, m, host_batchedP[i], lda);
-		// }
+		for (int i=0; i < _batch_count; i++) {
+			printf("U[%d]:\n",i);
+			print_matrix(m, n, host_batchedU[i], lda);
+			printf("DM[%d]:\n",i);
+			print_matrix(m, n, host_batchedDM[i], lda);
+			printf("Pot[%d]:\n",i);
+			print_matrix(m, n, host_batchedPot[i], lda);
+			printf("Hff[%d]:\n",i);
+			print_matrix(m, n, host_batchedHff[i], lda);
+			printf("Hff2[%d]:\n",i);
+			print_matrix(m, n, host_batchedHff2[i], lda);
+			printf("Hff3[%d]:\n",i);
+			print_matrix(m, n, host_batchedHff3[i], lda);
+			// printf("H_A[%d]:\n",i);
+			// print_matrix(m, n, h_A +  m * lda * i , 3);
+			std::printf("Eigen Values: \n");
+			for (int v = 0; v < minmn; v++) {
+				std::printf("S0(%d) = %e\n", v + 1, S[i * m + v]);
+			}
+			printf("Eigen Vectors:\n");
+			print_matrix(m, m, h_V + i * m * lda, ldv);
+			printf("S[%d]:\n", i);
+			print_matrix(m, m, host_batchedS[i], lda);
+			// printf("V[%d]:\n", i);
+			// print_matrix(m, m, host_batchedV[i], lda);
+			printf("S2[%d]:\n", i);
+			print_matrix(m, m, host_batchedS2[i], lda);
+			printf("P[%d]:\n", i);
+			print_matrix(m, m, host_batchedP[i], lda);
+		}
 		for (int i = 0; i < _batch_count; i++) {
 			cudaFreeHost(host_batchedU[i]);
 			cudaFreeHost(host_batchedDM[i]);

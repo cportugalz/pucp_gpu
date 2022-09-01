@@ -7,4 +7,8 @@ void cuda_simulation_StandardOscilation(
 	double* _dm, double* _alpha);
 
 
+void cuda_simulation_InvisibleDecay(
+	int num_simulations, int _sg, double* _th, double _dcp,  double _L, double _rho, 
+	double* _dm, double* _alpha);
+
 #endif
