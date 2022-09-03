@@ -1,5 +1,5 @@
-#ifndef __CUDA_PROBABILITIES_H
-#define __CUDA_PROBABILITIES_H
+#ifndef CUDA_PROBABILITIES_H
+#define CUDA_PROBABILITIES_H
 
 #include <complex>
 #include <cuComplex.h>
@@ -15,6 +15,13 @@ void cuda_StandardOscilation(
 void cuda_InvisibleDecay(
 	cuDoubleComplex* _U, double* _energy, int _size_data, int _sigN, double _L, double _rho, 
 	double* _dm, double* _alpha, double* _events);
+
+
+// GPU Non Standard Interaction
+void cuda_NonStandardInteraction(
+	cuDoubleComplex* _U, int _size_data, int _sigN, double _L, double _rho, 
+	double* _dm, double* _alpha, double* _events);
+
 
 class ProbConst {
 	public:

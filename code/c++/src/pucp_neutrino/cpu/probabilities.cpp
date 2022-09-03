@@ -122,12 +122,27 @@ void NonStandardInteraction(
     Eigen::MatrixXcd Hff(3, 3);
     Eigen::MatrixXcd S(3, 3);
     Eigen::MatrixXcd V(3, 3);
-	double energy = _energy*1e9;	
+	double energy = _energy*1e9;
+	printf("Energy:%e\n", energy);
+	printf("U:\n");
+	for(int i=0; i<3; i++){
+		for(int j=0; j<3; j++){
+			printf("%e + %e\t",_U[i][j].real(),_U[i][j].imag());
+		}
+		printf("\n");
+	}	
 	double rho = _sigN*_rho;
     std::complex<double> DM[3][3] = { std::complex<double>(0, 0) };
     std::complex<double> NSI[3][3];
     DM[1][1] = std::complex<double>(0.5 * _dm[0]/energy, 0);
     DM[2][2] = std::complex<double>(0.5 * _dm[1]/energy, 0);
+	printf("DM:\n");
+	for(int i=0; i<3; i++){
+		for(int j=0; j<3; j++){
+			printf("%e + %e\t", DM[i][j].real(), DM[i][j].imag());
+		}
+		printf("\n");
+	}
     /* Matriz de parámetros NSI */
     NSI[0][0] = _parmNSI[0];
     NSI[0][1] = _parmNSI[3] * exp(ProbConst::I*_parmNSI[4]);
@@ -142,6 +157,7 @@ void NonStandardInteraction(
 		std::complex<double>(rho*7.63247*0.5*1.e-14, 0), DM[0][1], DM[0][2],
 		DM[1][0], DM[0][0], DM[1][2],
 		DM[2][0], DM[2][1], DM[0][0];
+	std::cout <<"Pot:" << std::endl <<  Pot << std::endl ;
 	MNSI <<
 		NSI[0][0], NSI[0][1], NSI[0][2],
 		NSI[1][0], NSI[1][1], NSI[1][2],

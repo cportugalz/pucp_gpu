@@ -3,7 +3,14 @@
 
 .SILENT:
 all: 
-	nvcc -std=c++11 -g gpu_main_simulation.cpp cuda_simulation.cpp ../pucp_neutrino/cuda_probabilities.cu ../pucp_neutrino/cuda_std_oscillation.cu ../pucp_neutrino/cuda_inv_decay.cu -I../pucp_neutrino -lcublas -lcusolver -o gpu_simulation
+	nvcc -std=c++11 -g gpu_main_simulation.cpp cuda_simulation.cpp \
+	-I../pucp_neutrino/gpu/ \
+	../pucp_neutrino/gpu/cuda_probabilities.cu \
+	../pucp_neutrino/gpu/cuda_std_oscillation.cu \
+	../pucp_neutrino/gpu/cuda_inv_decay.cu \
+	../pucp_neutrino/gpu/cuda_nsi.cu \
+	../pucp_neutrino/gpu/utils.cpp \
+	-lcublas -lcusolver -o gpu_simulation
 
 run:
 	./gpu_simulation $(n)
