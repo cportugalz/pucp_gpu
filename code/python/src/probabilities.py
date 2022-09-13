@@ -3,24 +3,25 @@ import numpy as np
 from scipy.sparse.linalg import LinearOperator
 from integrate.gaussLegendre import NintegrGLQ
 from utils import ProbConst, PhiIntegration, matrixAdjoint
+import math
 
 def InvisibleDecay(_U, _energy, _sigN, _L, _rho, _dm, _alpha, _P):
 
-    Pot = np.ndarray((3,3),dtype=np.complex)
-    Hff = np.ndarray((3,3),dtype=np.complex)
-    S = np.ndarray((3,3),dtype=np.complex)
-    V = np.ndarray((3,3),dtype=np.complex)
+    Pot = np.ndarray((3,3),dtype=complex)
+    Hff = np.ndarray((3,3),dtype=complex)
+    S = np.ndarray((3,3),dtype=complex)
+    V = np.ndarray((3,3),dtype=complex)
 
     energy = _energy * 1e9
     rho = _sigN * _rho
 
-    DM = np.zeros((3,3),dtype=np.complex)
+    DM = np.zeros((3,3),dtype=complex)
 
-    DM[0,0] = np.complex(0, -0.5 * _alpha[0] / energy)
-    DM[1,1] = np.complex(0.5 * _dm[0] / energy, -0.5 * _alpha[1] / energy)
-    DM[2,2] = np.complex(0.5 * _dm[1] / energy, -0.5 * _alpha[2] / energy)
+    DM[0,0] = complex(0, -0.5 * _alpha[0] / energy)
+    DM[1,1] = complex(0.5 * _dm[0] / energy, -0.5 * _alpha[1] / energy)
+    DM[2,2] = complex(0.5 * _dm[1] / energy, -0.5 * _alpha[2] / energy)
 
-    Pot[0,0] = np.complex(rho * 7.63247 * 0.5 * 1e-14, 0)
+    Pot[0,0] = complex(rho * 7.63247 * 0.5 * 1e-14, 0)
     Pot[0,1] = DM[0][1]
     Pot[0,2] = DM[0][2]
     Pot[1,0] = DM[1][0]
@@ -67,20 +68,20 @@ def StandardOscilation(_U, _energy, _sigN, _L, _rho, _dm, _alpha, _P):
 def NonStandardInteraction(_U, _energy, _sigN, _L, _rho, _dm, _parmNSI, _P):
     # hermitian matrix
 
-    Pot = np.ndarray((3,3), dtype=np.complex)
-    MNSI = np.ndarray((3,3), dtype=np.complex)
-    Hff = np.ndarray((3,3), dtype=np.complex)
-    S = np.ndarray((3,3), dtype=np.complex)
-    V = np.ndarray((3,3), dtype=np.complex)
+    Pot = np.ndarray((3,3), dtype=complex)
+    MNSI = np.ndarray((3,3), dtype=complex)
+    Hff = np.ndarray((3,3), dtype=complex)
+    S = np.ndarray((3,3), dtype=complex)
+    V = np.ndarray((3,3), dtype=complex)
 
     energy = _energy * 1e9
     rho = _sigN * _rho
 
-    DM = np.zeros((3,3), dtype=np.complex)
-    NSI = np.ndarray((3,3), dtype=np.complex)
+    DM = np.zeros((3,3), dtype=complex)
+    NSI = np.ndarray((3,3), dtype=complex)
 
-    DM[1,1] = np.complex(0.5 * _dm[0] / energy, 0)
-    DM[2,2] = np.complex(0.5 * _dm[1] / energy, 0)
+    DM[1,1] = complex(0.5 * _dm[0] / energy, 0)
+    DM[2,2] = complex(0.5 * _dm[1] / energy, 0)
 
     NSI[0,0] = _parmNSI[0]
     NSI[0,1] = _parmNSI[3] * np.exp(ProbConst.I * _parmNSI[4])
@@ -92,7 +93,7 @@ def NonStandardInteraction(_U, _energy, _sigN, _L, _rho, _dm, _parmNSI, _P):
     NSI[2,1] = _parmNSI[7] * np.exp(-ProbConst.I * _parmNSI[8])
     NSI[2,2] = _parmNSI[2]
 
-    Pot[0,0] = np.complex(rho * 7.63247 * 0.5 * 1.e-14, 0)
+    Pot[0,0] = complex(rho * 7.63247 * 0.5 * 1.e-14, 0)
     Pot[0,1] = DM[0][1]
     Pot[0,2] = DM[0][2]
     Pot[1,0] = DM[1][0]
@@ -136,21 +137,21 @@ def NonStandardInteraction(_U, _energy, _sigN, _L, _rho, _dm, _parmNSI, _P):
 def ViolationPrincipleDecay(_U, _energy, _sigN, _L, _rho, _dm, _gamma, _P):
     # hermitian matrix
 
-    Pot = np.ndarray((3,3), dtype=np.complex)
-    Hff = np.ndarray((3,3), dtype=np.complex)
-    S = np.ndarray((3,3), dtype=np.complex)
-    V = np.ndarray((3,3), dtype=np.complex)
+    Pot = np.ndarray((3,3), dtype=complex)
+    Hff = np.ndarray((3,3), dtype=complex)
+    S = np.ndarray((3,3), dtype=complex)
+    V = np.ndarray((3,3), dtype=complex)
 
     energy = _energy * 1.e9
     rho = _sigN * _rho
 
-    DM = np.zeros((3,3), dtype=np.complex)
+    DM = np.zeros((3,3), dtype=complex)
 
-    DM[0,0] = np.complex(2 * energy * _gamma[0], 0)
-    DM[1,1] = np.complex(0.5 * _dm[0] / energy + 2 * energy * _gamma[1], 0)
-    DM[2,2] = np.complex(0.5 * _dm[1] / energy + 2 * energy * _gamma[2], 0)
+    DM[0,0] = complex(2 * energy * _gamma[0], 0)
+    DM[1,1] = complex(0.5 * _dm[0] / energy + 2 * energy * _gamma[1], 0)
+    DM[2,2] = complex(0.5 * _dm[1] / energy + 2 * energy * _gamma[2], 0)
 
-    Pot[0,0] = np.complex(rho * 7.63247 * 0.5 * 1e-14, 0)
+    Pot[0,0] = complex(rho * 7.63247 * 0.5 * 1e-14, 0)
     Pot[0,1] = DM[0][1]
     Pot[0,2] = DM[0][2]
     Pot[1,0] = DM[1][0]
@@ -192,10 +193,10 @@ def ViolationPrincipleDecay(_U, _energy, _sigN, _L, _rho, _dm, _gamma, _P):
 
 def ProbabilityVis(_energy, _L, _rho, _th, _dm, d, _alpha, _mlight, _tfi, _tsi, _tff, _tsf, _tpar, _thij, _tqcoup):
 
-    Pot = np.ndarray((3,3), dtype=np.complex)
+    Pot = np.ndarray((3,3), dtype=complex)
 
     Enf = _energy * 1.e9
-    mss = np.ndarray((3),  dtype=np.complex)
+    mss = np.ndarray((3),  dtype=complex)
     
     if (_dm[1] > 0):
         mss[0] = _mlight
@@ -208,7 +209,7 @@ def ProbabilityVis(_energy, _L, _rho, _th, _dm, d, _alpha, _mlight, _tfi, _tsi, 
     
     mm = min(20, (mss[_tpar] / mss[_thij]) * _energy)
 
-    Pot[0,0] = np.complex(_rho * 7.63247 * 0.5 * 1e-14, 0)
+    Pot[0,0] = complex(_rho * 7.63247 * 0.5 * 1e-14, 0)
     Pot[0,1] = ProbConst.Z0
     Pot[0,2] = ProbConst.Z0
     Pot[1,0] = ProbConst.Z0
@@ -218,3 +219,19 @@ def ProbabilityVis(_energy, _L, _rho, _th, _dm, d, _alpha, _mlight, _tfi, _tsi, 
     Pot[2,1] = ProbConst.Z0
     Pot[2,2] = ProbConst.Z0
     return np.real(1.e9 * NintegrGLQ(lambda x: PhiIntegration(x, mss, Pot, Enf, _L, _th, d, _alpha, _tfi, _tsi, _tff, _tsf, _tpar, _thij, _tqcoup), (1.00001) * _energy, mm))
+
+class GellManMatrices:
+    lambda0 = 1/math.sqrt(6) * np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=complex)
+    lambda1 = 0.5 * np.array([[0, 1, 0], [1, 0, 0], [0, 0, 0]], dtype=complex)
+    lambda2 = 0.5 * np.array([[0, -1j, 0], [1j, 0, 0], [0, 0, 0]], dtype=complex)
+    lambda3 = 0.5 * np.array([[1, 0, 0], [0, -1, 0], [0, 0, 0]], dtype=complex)
+    lambda4 = 0.5 * np.array([[0, 0, 1], [0, 0, 0], [1, 0, 0]], dtype=complex)
+    lambda5 = 0.5 * np.array([[0, 0, -1j], [0, 0, 0], [1j, 0, 0]], dtype=complex)
+    lambda6 = 0.5 * np.array([[0, 0, 0], [0, 0, 1], [0, 1, 0]], dtype=complex)
+    lambda7 = 0.5 * np.array([[0, 0, 0], [0, 0, -1j], [0, 1j, 0]], dtype=complex)
+    lambda8 = 1/(2*math.sqrt(3)) * np.array([[1, 0, 0], [0, 1, 0], [0, 0, -2]], dtype=complex)
+
+def matrixDHC(E, s, L, rho, th12, th13, th23, delta, dm21, dm31, gamma_d, P):
+    return 0
+    
+print(GellManMatrices.lambda1)
