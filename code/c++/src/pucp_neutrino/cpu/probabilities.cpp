@@ -191,10 +191,13 @@ void NonStandardInteraction(
 		DM[0][0], DM[0][0], exp(-ProbConst::I*tmp.eigenvalues()[2] * _L * 1.e9/ProbConst::GevkmToevsq);
 	S = ( V ) * S * ( V.inverse() );
 	// Calculando la matriz de probabilidad
+	std::cout << "P:" << std::endl;
 	for(int i=0; i<3; i++){
 		for(int j=0; j<3; j++) {
 			_P[i][j] = abs(S.col(i)[j]*S.col(i)[j]);
+			std::cout << _P[i][j] << "\t";
 		}
+		std::cout << std::endl;
 	} // Fila j , columna i
 }
 
