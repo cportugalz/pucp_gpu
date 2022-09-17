@@ -94,9 +94,9 @@ void InvisibleDecay(
 	std::cout << "Eigen values:" << std::endl;
 	std::cout << tmp.eigenvalues()[0] << "\t" << tmp.eigenvalues()[1] << "\t" << tmp.eigenvalues()[2] <<std::endl;
 	V = tmp.eigenvectors();
-	S << exp(-ProbConst::I * tmp.eigenvalues()[0].real() * _L * 1.e9 / ProbConst::GevkmToevsq), DM[0][0], DM[0][0],
-		DM[0][0], exp(-ProbConst::I * tmp.eigenvalues()[1].real() * _L * 1.e9 / ProbConst::GevkmToevsq), DM[0][0],
-		DM[0][0], DM[0][0], exp(-ProbConst::I * tmp.eigenvalues()[2].real() * _L * 1.e9 / ProbConst::GevkmToevsq);
+	S << exp(-ProbConst::I * tmp.eigenvalues()[0] * _L * 1.e9 / ProbConst::GevkmToevsq), DM[0][0], DM[0][0],
+		DM[0][0], exp(-ProbConst::I * tmp.eigenvalues()[1] * _L * 1.e9 / ProbConst::GevkmToevsq), DM[0][0],
+		DM[0][0], DM[0][0], exp(-ProbConst::I * tmp.eigenvalues()[2] * _L * 1.e9 / ProbConst::GevkmToevsq);
 	std::cout << "S:" <<   S << std::endl;
 	S = (V)*S * (V.inverse());
 	std::cout << "S2:" << S << std::endl;
@@ -162,6 +162,8 @@ void NonStandardInteraction(
 		NSI[0][0], NSI[0][1], NSI[0][2],
 		NSI[1][0], NSI[1][1], NSI[1][2],
 		NSI[2][0], NSI[2][1], NSI[2][2];
+	std::cout <<"MNSI:" << std::endl <<  MNSI << std::endl ;
+
 	/* Inicializando las matrices para Eigen */
 	Eigen::MatrixXcd UPMNS(3, 3);
 	UPMNS << _U[0][0], _U[0][1], _U[0][2],
@@ -171,13 +173,18 @@ void NonStandardInteraction(
 	Hd << DM[0][0], DM[0][1], DM[0][2],
 		DM[1][0], DM[1][1], DM[1][2],
 		DM[2][0], DM[2][1], DM[2][2];
+	// std::cout <<"Hd:" << std::endl <<  Hd << std::endl ;
 	/* Hamiltoniano final efectivo */
 	Hff = UPMNS * Hd * UPMNS.adjoint() + rho*7.63247*0.5*1.e-14*MNSI + Pot ;
+	std::cout <<"Hff3:" << std::endl <<  Hff << std::endl ;
+
 	/* Calculando los autovalores y autovectores */
 	Eigen::ComplexEigenSolver<Eigen::MatrixXcd> tmp;
 	tmp.compute(Hff);
 	/* Calculamos la matriz S y ordenamos los autovalores */
 	V = tmp.eigenvectors() ;
+	std::cout << tmp.eigenvalues()[0] << "\t" << tmp.eigenvalues()[1] << "\t" << tmp.eigenvalues()[2] <<std::endl;
+	
 	S <<
 		exp(-ProbConst::I*tmp.eigenvalues()[0] * _L * 1.e9/ProbConst::GevkmToevsq), DM[0][0], DM[0][0],
 		DM[0][0], exp(-ProbConst::I*tmp.eigenvalues()[1] * _L * 1.e9/ProbConst::GevkmToevsq), DM[0][0],

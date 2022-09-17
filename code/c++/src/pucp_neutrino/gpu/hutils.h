@@ -29,8 +29,28 @@
 #define UTILS_H
 #pragma once
 
+#include <cuComplex.h>
+#include <complex>
 
 template <typename T> void print_matrix(const int &m, const int &n, const T *A, const int &lda);
 template <typename T> void print_vector(const int &m, const T *A);
+
+class ProbConst {
+	public:
+		ProbConst(){}
+		static const std::complex<double> I;
+		static const std::complex<double> Z0;
+		static const double hbar;
+		static const double clight;
+		//double GevkmToevsq = hbar*clight*1.e15;
+		static const double GevkmToevsq;
+};
+
+// Matriz U
+cuDoubleComplex* make_umns(int sg, double* th, double dcp);
+// Matriz H: hamiltoniano
+// int hamilton(int q, double Eni);
+// double dGdE(double mi, double mf, double Ei, double Ef, int coup);
+// double dGbdE(double mi, double mf, double Ei, double Ef, int coup);
 
 #endif

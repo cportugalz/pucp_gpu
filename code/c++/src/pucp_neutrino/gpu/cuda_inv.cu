@@ -1,15 +1,17 @@
-#include "cuda_probabilities.h"
+#include "probabilities.h"
+#include "hutils.h"
+#include "dutils.cuh"
+
 #include <cuda_runtime.h>
 #include <cublas_v2.h>
-#include "utils.h"
 #include <cusolverDn.h>
 #include <time.h>
 using namespace std;
 
 // GPU Kernel for visible decay
 __global__ void gpu_invisible_decay(
-	cuDoubleComplex* _U, double* _energy, int _size_data, int _sigN, double _L, double _rho,
-	double* _dm, double* _alpha, double* _events, cuDoubleComplex** _batchedDM,
+	cuDoubleComplex* _U, int _size_data, int _sigN, double _L, double _rho,
+	double* _dm, double* _alpha, cuDoubleComplex** _batchedDM,
 	cuDoubleComplex** _batchedPot, cuDoubleComplex** _batchedU){
 	int tid = blockIdx.x*blockDim.x + threadIdx.x;
 	if(tid < _size_data){
@@ -17,7 +19,7 @@ __global__ void gpu_invisible_decay(
 		for (int i=0; i<9; i++) {
 			_batchedU[tid][i] = _U[i];
 		}
-		double energy = _energy[tid] * 1e9;
+		double energy = (tid+1)/100.0 * 1e9;
 		// printf("Calling threadIdx: %d  for energy %e\n", tid, energy);
 		double rho = _sigN * _rho;
 		// Matriz de masas y Decay
@@ -54,10 +56,6 @@ __global__ void sum_batched(
 				// printf("[%d ]%e %ej \n", tid * 9 + i, d_A[tid * 9 + i].x, d_A[tid * 9 + i].y);
 		}
 	}
-}
-
-__device__ cuDoubleComplex exp(cuDoubleComplex _num){
-	return make_cuDoubleComplex(exp(_num.x)*cos(_num.y), exp(_num.x)*sin(_num.y));
 }
 
 
@@ -107,8 +105,8 @@ __global__ void buildP(double** _batchedP, cuDoubleComplex** _batchedS, int _bat
 
 // GPU Invisible Decay
 void cuda_InvisibleDecay(
-	cuDoubleComplex* _U, double* _energy, int _batch_count, int _sigN, double _L, double _rho,
-	double* _dm, double* _alpha, double* _events) {
+	cuDoubleComplex* _U, int _batch_count, int _sigN, double _L, double _rho,
+	double* _dm, double* _alpha) {
 		float threads = 1024;
 		using data_type =  cuDoubleComplex;
 		const int m = 3;
@@ -260,7 +258,7 @@ void cuda_InvisibleDecay(
 		clock_t start_time = clock();
 		printf("Calling Invisible Decay Kernel with %d blocks and %.0f threads per block\n", blocks, threads);
 		gpu_invisible_decay<<<blocks, threads>>>(
-			_U, _energy, _batch_count, _sigN, _L, _rho, _dm, _alpha, _events,
+			_U, _batch_count, _sigN, _L, _rho, _dm, _alpha,
 			batchedDM, batchedPot, batchedU);
 		cudaDeviceSynchronize();
 		// CuBlas Operations

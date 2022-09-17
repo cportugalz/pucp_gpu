@@ -23,7 +23,7 @@ int main(int argc, char* argv[]){
 	double dm[] = { 7.4e-5, 2.5e-3 }; 
 	double alpSTD[3] = { 0 };
 	// Invisible decay
-	double alpINV[3] = { 0, 0, 5.e-5 }; // (0, alpha2, alpha3))
+	double alpINV[3] = { 0, 0, 5.e-3 }; // (0, alpha2, alpha3))
 	// VEP
 	//double alpVEP[3] = { 0, 0, 2.e-24}; //(Gamma1, Gamma2, Gamma2))
 	double alpVEP[3] = { 0, 4.e-24, 0}; //(Gamma1, Gamma2, Gamma2))
