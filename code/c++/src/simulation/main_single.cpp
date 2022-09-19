@@ -70,12 +70,12 @@ int main(int argc, char* argv[]){
 			// InvisibleDecay(
 			// 	U1, energy, s, L, rho, dm, alpINV, PrINV 
 			// );
-			// ViolationEquivalencePrinciple(
-			// 	U1, energy, s, L, rho, dm, alpVEP, PrVEP 
-			// );        
-			NonStandardInteraction(
-				U1, energy, s, L, rho, dm, alpNSI, PrNSI 
-			);
+			ViolationEquivalencePrinciple(
+				U1, energy, s, L, rho, dm, alpVEP, PrVEP 
+			);        
+			// NonStandardInteraction(
+			// 	U1, energy, s, L, rho, dm, alpNSI, PrNSI 
+			// );
 			// VisibleDecay(
 			// 	energy, L, rho, th, dm, d, alpINV, mlight, 
 			// 	fi_1, si_1, ff_1, sf_1, par, hij, qcoup, &PrVis_1

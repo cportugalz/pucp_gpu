@@ -22,4 +22,8 @@ void cuda_NonStandardInteraction(
 	double* _dm, double* _alpha);
 
 
+// GPU Violation Equivalence Principle
+void cuda_ViolationEquivalence(
+	cuDoubleComplex* _U, int _size_data, int _sigN, double _L, double _rho, 
+	double* _dm, double* _alpha);
 #endif

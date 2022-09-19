@@ -13,6 +13,8 @@ OBJS = gpu_simulation.o cuda_simulation.o \
 		$(SRCDIR)/cuda_osc.o \
 		$(SRCDIR)/cuda_inv.o \
 		$(SRCDIR)/cuda_nsi.o \
+		$(SRCDIR)/cuda_vep.o \
+		
 
 
 # # Link c++ and CUDA compiled object files to target executable:
@@ -35,6 +37,9 @@ $(SRCDIR)/cuda_inv.o : $(SRCDIR)/cuda_inv.cu
 	$(CC) $(CXXFLAGS) $(INCDIRS) -c $< -o $@ 
 
 $(SRCDIR)/cuda_nsi.o : $(SRCDIR)/cuda_nsi.cu
+	$(CC) $(CXXFLAGS) $(INCDIRS) -c $< -o $@
+
+$(SRCDIR)/cuda_vep.o : $(SRCDIR)/cuda_vep.cu
 	$(CC) $(CXXFLAGS) $(INCDIRS) -c $< -o $@  
 	
 # .SILENT:
