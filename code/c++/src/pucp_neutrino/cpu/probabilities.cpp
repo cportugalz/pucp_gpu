@@ -215,18 +215,18 @@ void ViolationEquivalencePrinciple(
 	DM[0][0] = std::complex<double>(0 + 2*energy*_gamma[0], 0);
 	DM[1][1] = std::complex<double>(0.5*_dm[0]/energy + 2*energy*_gamma[1], 0);
 	DM[2][2] = std::complex<double>(0.5*_dm[1]/energy + 2*energy*_gamma[2], 0);
-	printf("DM:\n");
-	for(int i=0; i<3; i++){
-		for(int j=0; j<3; j++){
-			printf("%e + %e\t", DM[i][j].real(), DM[i][j].imag());
-		}
-		printf("\n");
-	}
+	// printf("DM:\n");
+	// for(int i=0; i<3; i++){
+	// 	for(int j=0; j<3; j++){
+	// 		printf("%e + %e\t", DM[i][j].real(), DM[i][j].imag());
+	// 	}
+	// 	printf("\n");
+	// }
 	Pot <<
 		std::complex<double>(rho*7.63247*0.5*1.e-14, 0), DM[0][1], DM[0][2],
 		DM[1][0], DM[0][0], DM[1][2],
 		DM[2][0], DM[2][1], DM[0][0];
-	std::cout <<"Pot:" << std::endl <<  Pot << std::endl ;
+	// std::cout <<"Pot:" << std::endl <<  Pot << std::endl ;
 
 	/* Inicializando las matrices para Eigen */
 	Eigen::MatrixXcd UPMNS(3, 3);
@@ -239,13 +239,13 @@ void ViolationEquivalencePrinciple(
 		DM[2][0], DM[2][1], DM[2][2];
 	/* Hamiltoniano final efectivo */
 	Hff = UPMNS * Hd * UPMNS.adjoint() + Pot ;
-	std::cout <<"Hff3:" << std::endl <<  Hff << std::endl ;
+	// std::cout <<"Hff3:" << std::endl <<  Hff << std::endl ;
 	/* Calculando los autovalores y autovectores */
 	Eigen::ComplexEigenSolver<Eigen::MatrixXcd> tmp;
 	tmp.compute(Hff);
 	/* Calculamos la matriz S y ordenamos los autovalores */
 	V = tmp.eigenvectors() ;
-	std::cout << tmp.eigenvalues()[0] << "\t" << tmp.eigenvalues()[1] << "\t" << tmp.eigenvalues()[2] <<std::endl;
+	// std::cout << tmp.eigenvalues()[0] << "\t" << tmp.eigenvalues()[1] << "\t" << tmp.eigenvalues()[2] <<std::endl;
 
 	S <<
 		exp(-ProbConst::I*tmp.eigenvalues()[0]*_L*1.e9/ProbConst::GevkmToevsq), DM[0][0], DM[0][0],
@@ -253,14 +253,14 @@ void ViolationEquivalencePrinciple(
 		DM[0][0], DM[0][0], exp(-ProbConst::I*tmp.eigenvalues()[2]*_L*1.e9/ProbConst::GevkmToevsq);
 	S = ( V ) * S * ( V.inverse() );
 	// Calculando la matriz de probabilidad
-	std::cout << "P:" << std::endl;
+	// std::cout << "P:" << std::endl;
 	for(int i=0; i<3; i++) {
 		for(int j=0; j<3; j++) {
 			_P[i][j] = abs(S.col(i)[j]*S.col(i)[j]);
-			std::cout << _P[i][j] << "\t";
+			// std::cout << _P[i][j] << "\t";
 
 		}
-		std::cout << std::endl;
+		// std::cout << std::endl;
 	}
 }
 

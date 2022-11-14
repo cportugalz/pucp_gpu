@@ -17,7 +17,7 @@ void cuda_simulation_StandardOscilation(
 	// 	iter_energy += 1;
 	// }
 	// double* denergy = nullptr;
-	double *devents = nullptr;
+	// double *devents = nullptr;
 	double* dalpha = nullptr;
 	cuDoubleComplex* dU1 = nullptr;
 	double* ddm = nullptr;
@@ -26,14 +26,14 @@ void cuda_simulation_StandardOscilation(
 	cudaMalloc(reinterpret_cast<void **>(&dalpha), 3*sizeof(double));
 	cudaMalloc(reinterpret_cast<void **>(&ddm), 2*sizeof(double));
 	cudaMalloc(reinterpret_cast<void **>(&dU1), 9*sizeof(cuDoubleComplex));
-	printf("Copying values of energy from host to device.\n");
+	// printf("Copying values of energy from host to device.\n");
 	// cudaMemcpy(denergy, henergy, N*sizeof(double), cudaMemcpyHostToDevice);
 	cudaMemcpy(dalpha, _alpha, 3*sizeof(double), cudaMemcpyHostToDevice);
 	cudaMemcpy(ddm, _dm, 2*sizeof(double), cudaMemcpyHostToDevice);
 	cudaMemcpy(dU1, U1, 9*sizeof(cuDoubleComplex), cudaMemcpyHostToDevice);
 	cuda_StandardOscilation(dU1, N, _sg, _L, _rho, ddm, dalpha);
 	// cudaFree(denergy);
-	cudaFree(devents);
+	// cudaFree(devents);
 	cudaFree(dalpha);
 	cudaFree(ddm);
 	cudaFree(dU1);

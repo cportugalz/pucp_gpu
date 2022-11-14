@@ -48,12 +48,12 @@ void perform_simulation(std::string _filename, double _start_sim, double _end_si
 	std::ofstream file_results(_filename);
 	if(file_results.is_open()){        
 		for(double energy=_start_sim; int(energy*100)<=int(_end_sim*100); ) {            
-			// StandardOscilation(
-			//     U1, energy, s, L, rho, dm, alpSTD, PrSTD
-			// );
-			InvisibleDecay(
-				U1, energy, s, L, rho, dm, alpINV, PrINV
+			StandardOscilation(
+			    U1, energy, s, L, rho, dm, alpSTD, PrSTD
 			);
+			// InvisibleDecay(
+			// 	U1, energy, s, L, rho, dm, alpINV, PrINV
+			// );
 			// ViolationEquivalencePrinciple(
 			//     U1, energy, s, L, rho, dm, alpVEP, PrVEP
 			// );

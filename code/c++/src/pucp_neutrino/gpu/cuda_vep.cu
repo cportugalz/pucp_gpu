@@ -378,36 +378,36 @@ void cuda_ViolationEquivalence(
 		// // cudaStreamSynchronize(stream));
 		cudaDeviceSynchronize();
 
-		for (int i=0; i < _batch_count; i++) {
-			// printf("U[%d]:\n",i);
-			// print_matrix(m, n, host_batchedU[i], lda);
-			printf("DM[%d]:\n",i);
-			print_matrix(m, n, host_batchedDM[i], lda);
-			printf("Pot[%d]:\n",i);
-			print_matrix(m, n, host_batchedPot[i], lda);
-		// 	printf("Hff[%d]:\n",i);
-		// 	print_matrix(m, n, host_batchedHff[i], lda);
-		// 	printf("Hff2[%d]:\n",i);
-		// 	print_matrix(m, n, host_batchedHff2[i], lda);
-			printf("Hff3[%d]:\n",i);
-			print_matrix(m, n, host_batchedHff3[i], lda);
-		// 	// printf("H_A[%d]:\n",i);
-		// 	// print_matrix(m, n, h_A +  m * lda * i , 3);
-			std::printf("Eigen Values: \n");
-			for (int v = 0; v < minmn; v++) {
-				std::printf("S0(%d) = %e\n", v + 1, S[i * m + v]);
-			}
-		// 	printf("Eigen Vectors:\n");
-		// 	print_matrix(m, m, h_V + i * m * lda, ldv);
-		// 	printf("S[%d]:\n", i);
-		// 	print_matrix(m, m, host_batchedS[i], lda);
-		// 	// printf("V[%d]:\n", i);
-		// 	// print_matrix(m, m, host_batchedV[i], lda);
-		// 	printf("S2[%d]:\n", i);
-		// 	print_matrix(m, m, host_batchedS2[i], lda);
-			printf("P[%d]:\n", i);
-			print_matrix(m, m, host_batchedP[i], lda);
-		}
+		// for (int i=0; i < _batch_count; i++) {
+		// 	// printf("U[%d]:\n",i);
+		// 	// print_matrix(m, n, host_batchedU[i], lda);
+		// 	printf("DM[%d]:\n",i);
+		// 	print_matrix(m, n, host_batchedDM[i], lda);
+		// 	printf("Pot[%d]:\n",i);
+		// 	print_matrix(m, n, host_batchedPot[i], lda);
+		// // 	printf("Hff[%d]:\n",i);
+		// // 	print_matrix(m, n, host_batchedHff[i], lda);
+		// // 	printf("Hff2[%d]:\n",i);
+		// // 	print_matrix(m, n, host_batchedHff2[i], lda);
+		// 	printf("Hff3[%d]:\n",i);
+		// 	print_matrix(m, n, host_batchedHff3[i], lda);
+		// // 	// printf("H_A[%d]:\n",i);
+		// // 	// print_matrix(m, n, h_A +  m * lda * i , 3);
+		// 	std::printf("Eigen Values: \n");
+		// 	for (int v = 0; v < minmn; v++) {
+		// 		std::printf("S0(%d) = %e\n", v + 1, S[i * m + v]);
+		// 	}
+		// // 	printf("Eigen Vectors:\n");
+		// // 	print_matrix(m, m, h_V + i * m * lda, ldv);
+		// // 	printf("S[%d]:\n", i);
+		// // 	print_matrix(m, m, host_batchedS[i], lda);
+		// // 	// printf("V[%d]:\n", i);
+		// // 	// print_matrix(m, m, host_batchedV[i], lda);
+		// // 	printf("S2[%d]:\n", i);
+		// // 	print_matrix(m, m, host_batchedS2[i], lda);
+		// 	printf("P[%d]:\n", i);
+		// 	print_matrix(m, m, host_batchedP[i], lda);
+		// }
 		for (int i = 0; i < _batch_count; i++) {
 			// cudaFreeHost(host_batchedU[i]);
 			cudaFreeHost(host_batchedDM[i]);

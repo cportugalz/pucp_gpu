@@ -65,10 +65,10 @@ int main(int argc, char* argv[]){
 	// std::ofstream file_results("output/output.txt");
 	// auto start_time = std::chrono::high_resolution_clock::now();
 	// if(file_results.is_open()){
-	// printf("**** Running standard oscilation simulation ****\n");
-	// cuda_simulation_StandardOscilation(
-	// 	num_simulations, s, th, d, L, rho, dm, alpSTD
-	// );
+	printf("**** Running standard oscilation simulation ****\n");
+	cuda_simulation_StandardOscilation(
+		num_simulations, s, th, d, L, rho, dm, alpSTD
+	);
 	// printf("**** Running invisible decay simulation ****\n");
 	// cuda_simulation_InvisibleDecay(
 	// 	num_simulations, s, th, d, L, rho, dm, alpINV
@@ -77,10 +77,10 @@ int main(int argc, char* argv[]){
 	// cuda_simulation_NonStandardInteraction(
 	// 	num_simulations, s, th, d, L, rho, dm, alpNSI
 	// );
-	printf("**** Running ViolationEquivalence simulation ****\n");
-	cuda_simulation_ViolationEquivalence(
-		num_simulations, s, th, d, L, rho, dm, alpVEP
-	);
+	// printf("**** Running ViolationEquivalence simulation ****\n");
+	// cuda_simulation_ViolationEquivalence(
+	// 	num_simulations, s, th, d, L, rho, dm, alpVEP
+	// );
 	// ViolationEquivalencePrinciple(
 	// 	U1, energy, s, L, rho, dm, alpVEP, PrVEP
 	// );
