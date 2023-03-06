@@ -64,26 +64,26 @@ int main(int argc, char* argv[]){
 	if(file_results.is_open()){        
 		for(int iter_energy=1; iter_energy<=num_simulations; ) {
 			double energy = iter_energy/100.0;
-			// StandardOscilation(
-			// 	U1, energy, s, L, rho, dm, alpSTD, PrSTD
-			// );
-			// InvisibleDecay(
-			// 	U1, energy, s, L, rho, dm, alpINV, PrINV 
-			// );
+			StandardOscilation(
+				U1, energy, s, L, rho, dm, alpSTD, PrSTD
+			);
+			InvisibleDecay(
+				U1, energy, s, L, rho, dm, alpINV, PrINV 
+			);
 			ViolationEquivalencePrinciple(
 				U1, energy, s, L, rho, dm, alpVEP, PrVEP 
 			);        
-			// NonStandardInteraction(
-			// 	U1, energy, s, L, rho, dm, alpNSI, PrNSI 
-			// );
-			// VisibleDecay(
-			// 	energy, L, rho, th, dm, d, alpINV, mlight, 
-			// 	fi_1, si_1, ff_1, sf_1, par, hij, qcoup, &PrVis_1
-			// );
-			// VisibleDecay(
-			// 	energy, L, rho, th, dm, d, alpINV, mlight, 
-			// 	fi_2, si_2, ff_2, sf_2, par, hij, qcoup, &PrVis_2
-			// );
+			NonStandardInteraction(
+				U1, energy, s, L, rho, dm, alpNSI, PrNSI 
+			);
+			VisibleDecay(
+				energy, L, rho, th, dm, d, alpINV, mlight, 
+				fi_1, si_1, ff_1, sf_1, par, hij, qcoup, &PrVis_1
+			);
+			VisibleDecay(
+				energy, L, rho, th, dm, d, alpINV, mlight, 
+				fi_2, si_2, ff_2, sf_2, par, hij, qcoup, &PrVis_2
+			);
 				
 			file_results << std::setprecision(2) << energy << ","<< std::fixed
 				<< std::setprecision(8)

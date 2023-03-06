@@ -3,7 +3,7 @@
 CC=nvcc
 CXXFLAGS= -std=c++11 -g
 LIBS= -lcublas -lcusolver
-NEUTRINO=$(HOME)/pucp_gpu/code/c++/src
+NEUTRINO=../
 SRCDIR=$(NEUTRINO)/pucp_neutrino/gpu
 LIBDIRS=
 INCDIRS=-I$(NEUTRINO)/pucp_neutrino/gpu
